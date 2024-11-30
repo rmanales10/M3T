@@ -1,14 +1,10 @@
-import 'dart:developer';
-
 import 'package:app_attend/src/admin/dashboard/screens/students/student_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:app_attend/src/admin/firebase/firestore.dart';
 
+// ignore: must_be_immutable
 class StudentPage extends StatelessWidget {
   StudentPage({super.key});
-
-  final Firestore _firestore = Get.put(Firestore());
   final _controller = Get.put(StudentController());
   RxBool isAddStudent = false.obs;
   RxBool isEditStudent = false.obs;

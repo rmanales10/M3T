@@ -1,38 +1,33 @@
-import 'package:app_attend/src/user/api_services/auth_service.dart';
-import 'package:app_attend/src/user/api_services/firestore_service.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/attendance/attendance_controller.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/attendance/create/create_attendance1.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/attendance/student_list/list_of_students.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/attendance/student_list/student_list.dart';
 import 'package:app_attend/src/widgets/color_constant.dart';
 import 'package:app_attend/src/widgets/reusable_function.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
-class AttendanceScreen extends StatefulWidget {
-  const AttendanceScreen({super.key});
+class AttendanceScreen1 extends StatefulWidget {
+  const AttendanceScreen1({super.key});
 
   @override
-  State<AttendanceScreen> createState() => _AttendanceScreenState();
+  State<AttendanceScreen1> createState() => _AttendanceScreen1State();
 }
 
-class _AttendanceScreenState extends State<AttendanceScreen> {
-  final AuthService _authService = Get.put(AuthService());
-  final FirestoreService _firestoreService = Get.put(FirestoreService());
+class _AttendanceScreen1State extends State<AttendanceScreen1> {
+  final _controller = Get.put(AttendanceController());
 
   @override
   void initState() {
     super.initState();
-    fetchAttendanceRecords();
-  }
-
-  void fetchAttendanceRecords() async {
-    if (_authService.currentUser != null) {
-      await _firestoreService.retrieveAttendance(
-          userId: _authService.currentUser!.uid);
-    }
+    initAttendance();
   }
 
   @override
   Widget build(BuildContext context) {
+    _controller.getAllAttendance();
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
@@ -69,40 +64,34 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             lineSpacer(size),
             Expanded(
               child: Obx(() {
-                if (_firestoreService.attendanceRecords.isEmpty) {
+                if (_controller.allAttendance.isEmpty) {
                   return Center(child: Text('No attendance records found'));
                 }
 
                 return ListView.builder(
-                  itemCount: _firestoreService.attendanceRecords.length,
+                  itemCount: _controller.allAttendance.length,
                   itemBuilder: (context, index) {
-                    final record = _firestoreService.attendanceRecords[index];
+                    final record = _controller.allAttendance[index];
+                    Timestamp timestamp = record['date'] as Timestamp;
+                    DateTime dateTime = timestamp.toDate();
+                    String formattedDate =
+                        DateFormat('MMMM d, y').format(dateTime);
                     String label =
-                        'Subject: ${record['subject']}\nSection: ${record['section']}\nDate: ${record['date'].toString().substring(0, 10)}';
+                        'Subject: ${record['subject']}\nSection: ${record['section']}\nDate: $formattedDate';
 
                     return createCard(
                       label,
-                      () => Get.to(() => StudentList(
+                      () => Get.to(() => ListOfStudents(
                             subject: record['subject'],
                             section: record['section'],
-                            dateTime: record['date'],
-                            time: record['time'],
+                            date: formattedDate,
                           )),
                       () => Get.dialog(AlertDialog(
                         title: Text('Confirmation'),
                         content: Text(
                             'Are you sure you want to delete this attendance?'),
                         actions: [
-                          ElevatedButton(
-                              onPressed: () async {
-                                fetchAttendanceRecords();
-                                Get.back();
-                                _firestoreService.deleteAttendanceRecord(
-                                  userId: _authService.currentUser!.uid,
-                                  attendanceId: record['id'],
-                                );
-                              },
-                              child: Text('Yes')),
+                          ElevatedButton(onPressed: () {}, child: Text('Yes')),
                           ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
@@ -146,5 +135,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> initAttendance() async {
+    await _controller.getAllAttendance();
   }
 }

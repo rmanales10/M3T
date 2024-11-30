@@ -23,24 +23,21 @@ class _CreateAttendanceState extends State<CreateAttendance> {
   final dateFormat = DateFormat('MM/dd/yyyy');
 
   // Drop-down reactive variables
-  final selectedSection = 'BSIT - 3A'.obs;
+  final selectedSection = 'BSIT 3A'.obs;
   final List<String> sections = [
-    'BSIT - 3A',
-    'BSIT - 3B',
-    'BSIT - 3C',
-    'BSIT - 3D',
-    'BSIT - 3E',
-    'BSIT - 3F',
+    'BSIT 3A',
+    'BSIT 3B',
+    'BSIT 3C',
+    'BSIT 3D',
+    'BSIT 3E',
+    'BSIT 3F',
   ];
 
-  final selectedSubject = 'Information Assurance Security'.obs;
+  final selectedSubject = 'Elective'.obs;
   final List<String> subjects = [
-    'Information Assurance Security',
-    'Networking 2',
+    'Elective',
     'Mobile Programming',
-    'Software Engineering',
-    'IT Elective 1',
-    'Technopreneurship',
+    'Database',
   ];
 
   void _selectTime() async {

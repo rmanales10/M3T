@@ -1,4 +1,4 @@
-import 'package:app_attend/src/user/dashboard/list_screen/attendance/attendance_screen1.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/attendance/attendance_screen/attendance_screen1.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/home/home_final.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/report/report_screen.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/profile/profile_screen.dart';

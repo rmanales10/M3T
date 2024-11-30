@@ -1,4 +1,4 @@
-import 'package:app_attend/src/user/dashboard/list_screen/attendance/attendance_controller.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/attendance/attendance_screen/attendance_controller.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/attendance/create/create_attendance1.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/attendance/student_list/list_of_students.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/attendance/student_list/student_list.dart';

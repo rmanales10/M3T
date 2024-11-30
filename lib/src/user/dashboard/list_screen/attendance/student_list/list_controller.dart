@@ -76,6 +76,7 @@ class ListController extends GetxController {
 
   // Observable for attendance record
   RxMap<String, dynamic> attendaceStudentRecord = <String, dynamic>{}.obs;
+  RxList<Map<String, dynamic>> studentPrintList = <Map<String, dynamic>>[].obs;
 
   // Get and print attendance student record
   Future<void> printAttendanceStudentRecord({
@@ -93,11 +94,11 @@ class ListController extends GetxController {
         if (attendaceStudentRecord['student_record'] != null) {
           final List<dynamic> rawStudentList =
               attendaceStudentRecord['student_record'];
-          final List<Map<String, dynamic>> studentPrintList = rawStudentList
+          studentPrintList.value = rawStudentList
               .map((e) => Map<String, dynamic>.from(e as Map))
               .toList();
 
-          log('Student List: $studentPrintList');
+          // log('Student List: $studentPrintList');
         }
       }
     } catch (e) {

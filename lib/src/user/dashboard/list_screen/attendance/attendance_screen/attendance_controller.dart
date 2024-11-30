@@ -27,7 +27,7 @@ class AttendanceController extends GetxController {
                 'is_submitted': doc['is_submitted'],
               })
           .toList();
-      log('success : $allAttendance');
+      // log('success : $allAttendance');
     } catch (e) {
       log('Error $e');
     }

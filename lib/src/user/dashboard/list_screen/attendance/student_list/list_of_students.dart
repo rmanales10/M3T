@@ -141,67 +141,78 @@ class _ListOfStudentsState extends State<ListOfStudents> {
           ),
           Spacer(),
           Text(
-            'Note! You can only submit once',
+            !widget.isSubmitted
+                ? 'Note! You can only submit once'
+                : 'Note! Generate to Word only',
             style: TextStyle(fontStyle: FontStyle.italic, color: Colors.red),
           ),
           SizedBox(height: 5),
           Align(
             alignment: Alignment.center,
             child: Container(
-              width: 130,
-              height: 40,
-              decoration: BoxDecoration(
-                  color: blue, borderRadius: BorderRadius.circular(5)),
-              child: TextButton(
-                onPressed: () async {
-                  await _controller.addAttendanceStudentRecord(
-                    attendanceId: widget.attendanceId,
-                    code: "Wala pa",
-                    datenow: widget.date,
-                    room: "Wala pa",
-                    schedule: "Wala pa",
-                    studentRecord: studentRecord,
-                    subject: widget.subject,
-                    teacher: "rolan wala pana",
-                    section: widget.section,
-                  );
-                  await _controller.isSubmitted(
-                      attendanceId: widget.attendanceId);
+                width: 150,
+                height: 40,
+                decoration: BoxDecoration(
+                    color: blue, borderRadius: BorderRadius.circular(5)),
+                child: !widget.isSubmitted
+                    ? TextButton(
+                        onPressed: () async {
+                          await _controller.addAttendanceStudentRecord(
+                            attendanceId: widget.attendanceId,
+                            code: "Wala pa",
+                            datenow: widget.date,
+                            room: "Wala pa",
+                            schedule: "Wala pa",
+                            studentRecord: studentRecord,
+                            subject: widget.subject,
+                            teacher: "rolan wala pana",
+                            section: widget.section,
+                          );
+                          await _controller.isSubmitted(
+                              attendanceId: widget.attendanceId);
 
-                  Get.back();
-                },
-                child: Text(
-                  'Submit',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
+                          Get.back();
+                        },
+                        child: Text(
+                          'Submit',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      )
+                    : TextButton(
+                        onPressed: () async {
+                          _onReportSelected(attendanceId: widget.attendanceId);
+                        },
+                        child: Text(
+                          'Generate Report...',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      )),
           ),
           SizedBox(height: 50),
         ],
       ),
-      floatingActionButton: PopupMenuButton<String>(
-        onSelected: _onReportSelected,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: blue,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Report', style: TextStyle(color: Colors.white)),
-              SizedBox(width: 15),
-              Icon(Icons.arrow_drop_down, color: Colors.white),
-            ],
-          ),
-        ),
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-          PopupMenuItem<String>(value: 'pdf', child: Text('Export PDF')),
-          PopupMenuItem<String>(value: 'csv', child: Text('Export CSV')),
-        ],
-      ),
+      // floatingActionButton: PopupMenuButton<String>(
+      //   onSelected: _onReportSelected,
+      //   child: Container(
+      //     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      //     decoration: BoxDecoration(
+      //       color: blue,
+      //       borderRadius: BorderRadius.circular(8),
+      //     ),
+      //     child: Row(
+      //       mainAxisSize: MainAxisSize.min,
+      //       children: [
+      //         Text('Report', style: TextStyle(color: Colors.white)),
+      //         SizedBox(width: 15),
+      //         Icon(Icons.arrow_drop_down, color: Colors.white),
+      //       ],
+      //     ),
+      //   ),
+      //   itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+      //     PopupMenuItem<String>(value: 'pdf', child: Text('Export PDF')),
+      //     PopupMenuItem<String>(value: 'csv', child: Text('Export CSV')),
+      //   ],
+      // ),
     );
   }
 
@@ -229,23 +240,35 @@ class _ListOfStudentsState extends State<ListOfStudents> {
     );
   }
 
-  void _onReportSelected(String value) async {
-    if (value == 'pdf') {
-      log('Exporting to PDF...');
-      try {
-        final response = await documentService.generateDocument();
-        if (response.statusCode == 200) {
-          // Get the download link from the response data
-          final String downloadLink = response.body['data'];
-          final Uri url = Uri.parse(downloadLink);
-          log('Download your document here: $downloadLink');
-          launchUrl(url);
-        }
-      } catch (e) {
-        log('Error $e');
-      }
-    } else if (value == 'csv') {
-      log('Exporting to CSV...');
+  void _onReportSelected({required attendanceId}) async {
+    _controller.printAttendanceStudentRecord(attendanceId: attendanceId);
+    final generate = _controller.attendaceStudentRecord;
+    final record = _controller.studentPrintList;
+    final List recorded = [];
+    int i = 1;
+    for (var records in record) {
+      var data = {
+        "index": i++,
+        "name": records['name'],
+        "section": generate['section'],
+        "present": '${generate['present']}',
+      };
+      recorded.add(data);
     }
+    log('$recorded');
+    log('Exporting to PDF...');
+
+    // try {
+    //   final response = await documentService.generateDocument(record: recorded);
+    //   if (response.statusCode == 200) {
+    //     // Get the download link from the response data
+    //     final String downloadLink = response.body['data'];
+    //     final Uri url = Uri.parse(downloadLink);
+    //     log('Download your document here: $downloadLink');
+    //     launchUrl(url);
+    //   }
+    // } catch (e) {
+    //   log('Error $e');
+    // }
   }
 }

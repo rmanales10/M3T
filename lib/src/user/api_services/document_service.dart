@@ -3,9 +3,7 @@ import 'dart:developer';
 import 'package:get/get.dart';
 
 class DocumentService extends GetConnect {
-  
-
-  Future<Response> generateDocument() async {
+  Future<Response> generateDocument({required var record}) async {
     final data = {
       "document": "xDm6j3d7Ck6klGH4UsS2",
       "apiKey": "5MIC3AY-OFTEYII-X5OVCOA-GQO6KFY",
@@ -16,14 +14,7 @@ class DocumentService extends GetConnect {
         "code": "code",
         "room": "room",
         "date": "date",
-        "record": [
-          {
-            "index": "index",
-            "name": "name",
-            "section": "section",
-            "present": "present"
-          }
-        ],
+        "record": record,
         "teacher": "teacher",
         "datenow": "datenow"
       }

@@ -42,5 +42,11 @@ class AttendanceController extends GetxController {
             .doc(attendanceId)
             .delete()
         : await _firestore.collection('record').doc(attendanceId).delete();
+    await _firestore
+        .collection('users')
+        .doc(currentUser!.uid)
+        .collection('attendance')
+        .doc(attendanceId)
+        .delete();
   }
 }

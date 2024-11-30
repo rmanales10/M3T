@@ -67,10 +67,41 @@ class _ListOfStudentsState extends State<ListOfStudents> {
                 isPresent
                     .addAll(List.generate(studentList.length, (_) => false));
               }
-              if (widget.isSubmitted) {
-                return Center(
-                  child: Text('wala pa'),
-                );
+
+              _controller.printAttendanceStudentRecord(
+                  attendanceId: widget.attendanceId);
+              final Map<String, dynamic> printList =
+                  _controller.attendaceStudentRecord;
+
+              // Null-check for student_record
+              if (printList.containsKey('student_record') &&
+                  printList['student_record'] != null) {
+                final List<dynamic> rawStudentList =
+                    printList['student_record'];
+                final List<Map<String, dynamic>> studentPrintList =
+                    rawStudentList
+                        .map((e) => Map<String, dynamic>.from(e as Map))
+                        .toList();
+
+                if (widget.isSubmitted) {
+                  return DataTable(
+                    columns: [
+                      DataColumn(label: Text('No.')),
+                      DataColumn(label: Text('Name')),
+                      DataColumn(label: Text('Absent ?')),
+                    ],
+                    rows: studentPrintList.asMap().entries.map((entry) {
+                      int index = entry.key;
+                      Map<String, dynamic> student = entry.value;
+
+                      return DataRow(cells: [
+                        DataCell(Text('${index + 1}')),
+                        DataCell(Text(student['name'] ?? 'N/A')),
+                        DataCell(Text(student['present'] ?? 'N/A')),
+                      ]);
+                    }).toList(),
+                  );
+                }
               }
               return DataTable(
                 columns: [
@@ -93,15 +124,12 @@ class _ListOfStudentsState extends State<ListOfStudents> {
                     DataCell(Text('${index + 1}')),
                     DataCell(Text(student['full_name'] ?? 'N/A')),
                     DataCell(Checkbox(
-                      value: isPresent[
-                          index], // Bind checkbox state to isPresent[index]
+                      value: isPresent[index],
                       onChanged: (value) {
                         setState(() {
-                          isPresent[index] =
-                              value ?? false; // Update the attendance status
+                          isPresent[index] = value ?? false;
                         });
 
-                        // Update studentRecord with the new attendance state
                         studentRecord[index]['present'] =
                             isPresent[index] == false ? 'X' : '✓';
                       },
@@ -179,7 +207,7 @@ class _ListOfStudentsState extends State<ListOfStudents> {
 
   Widget _buildInfoContainer(String label, String value) {
     return Container(
-      padding: EdgeInsets.only(left: 30),
+      padding: EdgeInsets.only(left: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -192,7 +220,9 @@ class _ListOfStudentsState extends State<ListOfStudents> {
                 color: blue, borderRadius: BorderRadius.circular(5)),
             child: Text(value,
                 style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11)),
           ),
         ],
       ),

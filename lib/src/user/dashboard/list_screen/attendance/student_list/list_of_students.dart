@@ -251,24 +251,24 @@ class _ListOfStudentsState extends State<ListOfStudents> {
         "index": i++,
         "name": records['name'],
         "section": generate['section'],
-        "present": '${generate['present']}',
+        "present": '${records['present']}',
       };
       recorded.add(data);
     }
     log('$recorded');
     log('Exporting to PDF...');
 
-    // try {
-    //   final response = await documentService.generateDocument(record: recorded);
-    //   if (response.statusCode == 200) {
-    //     // Get the download link from the response data
-    //     final String downloadLink = response.body['data'];
-    //     final Uri url = Uri.parse(downloadLink);
-    //     log('Download your document here: $downloadLink');
-    //     launchUrl(url);
-    //   }
-    // } catch (e) {
-    //   log('Error $e');
-    // }
+    try {
+      final response = await documentService.generateDocument(record: recorded);
+      if (response.statusCode == 200) {
+        // Get the download link from the response data
+        final String downloadLink = response.body['data'];
+        final Uri url = Uri.parse(downloadLink);
+        log('Download your document here: $downloadLink');
+        launchUrl(url);
+      }
+    } catch (e) {
+      log('Error $e');
+    }
   }
 }

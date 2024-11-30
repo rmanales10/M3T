@@ -32,4 +32,15 @@ class AttendanceController extends GetxController {
       log('Error $e');
     }
   }
+
+  Future<void> deleteAttendanceRecord(var attendanceId, var isSubmitted) async {
+    !isSubmitted
+        ? await _firestore
+            .collection('users')
+            .doc(currentUser!.uid)
+            .collection('attendance')
+            .doc(attendanceId)
+            .delete()
+        : await _firestore.collection('record').doc(attendanceId).delete();
+  }
 }

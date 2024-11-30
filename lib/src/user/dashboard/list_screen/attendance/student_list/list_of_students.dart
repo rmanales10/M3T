@@ -245,10 +245,10 @@ class _ListOfStudentsState extends State<ListOfStudents> {
     final generate = _controller.attendaceStudentRecord;
     final record = _controller.studentPrintList;
     final List recorded = [];
-    int i = 1;
+    int index = 1;
     for (var records in record) {
       var data = {
-        "index": i++,
+        "index": '${index += 1}',
         "name": records['name'],
         "section": generate['section'],
         "present": '${records['present']}',
@@ -268,7 +268,17 @@ class _ListOfStudentsState extends State<ListOfStudents> {
         final String downloadLink = response.body['data'];
         final Uri url = Uri.parse(downloadLink);
         log('Download your document here: $downloadLink');
-        launchUrl(url);
+        // launchUrl(url);
+
+        await _controller.storedUrl(
+            attendanceId: attendanceId,
+            subject: generate['subject'],
+            section: generate['section'],
+            date: generate['datenow'],
+            type: 'Docx',
+            url: downloadLink);
+        Get.back();
+        Get.snackbar('Success', 'Report generated successfully! ');
       }
     } catch (e) {
       log('Error $e');

@@ -88,7 +88,15 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
                         content: Text(
                             'Are you sure you want to delete this attendance?'),
                         actions: [
-                          ElevatedButton(onPressed: () {}, child: Text('Yes')),
+                          ElevatedButton(
+                              onPressed: () async {
+                                await _controller.deleteAttendanceRecord(
+                                    record['id'], record['is_submitted']);
+                                Get.back();
+                                Get.snackbar('Success',
+                                    'Attendance deleted successfully');
+                              },
+                              child: Text('Yes')),
                           ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,

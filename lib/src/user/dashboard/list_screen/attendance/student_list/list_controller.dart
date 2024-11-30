@@ -121,4 +121,22 @@ class ListController extends GetxController {
       log('Error updating submission status: $e');
     }
   }
+
+  Future<void> storedUrl({
+    required var attendanceId,
+    required var subject,
+    required var section,
+    required var date,
+    required var type,
+    required var url,
+  }) async {
+    await _firestore.collection('reports').doc(attendanceId).set({
+      'attendance_id': attendanceId,
+      'subject': subject,
+      'section': section,
+      'date': date,
+      'type': type,
+      'url': url,
+    }, SetOptions(merge: true));
+  }
 }

@@ -1,5 +1,8 @@
+import 'package:app_attend/src/user/dashboard/list_screen/report/report_controller.dart';
 import 'package:app_attend/src/widgets/color_constant.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -9,6 +12,8 @@ class ReportScreen extends StatefulWidget {
 }
 
 class _ReportScreenState extends State<ReportScreen> {
+  final _controller = Get.put(ReportController());
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,15 +23,28 @@ class _ReportScreenState extends State<ReportScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-        child: Column(
-          children: [
-            searchBar(),
-            SizedBox(height: 20),
-            reportCard('IT312 - Networking\nBSIT - 1B', '11/03/2024', 'PDF'),
-            reportCard(
-                'IT314 - Software Engineering\nBSIT - 1C', '11/02/2024', 'CSV'),
-          ],
-        ),
+        child: Obx(() {
+          _controller.getReports();
+
+          return ListView.builder(
+              itemCount: _controller.reports.length,
+              itemBuilder: (context, index) {
+                final report = _controller.reports[index];
+                return Column(
+                  children: [
+                    searchBar(),
+                    SizedBox(height: 20),
+                    reportCard(
+                        '${report['subject']}\n${report['section']}',
+                        '${report['date']}',
+                        '${report['type']}',
+                        '${report['url']}'),
+                    // reportCard('IT314 - Software Engineering\nBSIT - 1C',
+                    //     '11/02/2024', 'CSV'),
+                  ],
+                );
+              });
+        }),
       ),
     );
   }
@@ -48,7 +66,8 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
-  Align reportCard(String sectionLabel, String date, String fileType) {
+  Align reportCard(
+      String sectionLabel, String date, String fileType, String url) {
     return Align(
       alignment: Alignment.center,
       child: Container(
@@ -63,28 +82,39 @@ class _ReportScreenState extends State<ReportScreen> {
             width: 1,
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              sectionLabel,
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.bold, color: blue),
-            ),
-            SizedBox(height: 10),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  date,
-                  style: TextStyle(fontSize: 15, color: blue),
+                  sectionLabel,
+                  style: TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold, color: blue),
                 ),
-                SizedBox(width: 30),
-                Text(
-                  fileType,
-                  style: TextStyle(fontSize: 15, color: blue),
+                SizedBox(height: 10),
+                Row(
+                  children: [
+                    Text(
+                      date,
+                      style: TextStyle(fontSize: 15, color: blue),
+                    ),
+                    SizedBox(width: 30),
+                    Text(
+                      fileType,
+                      style: TextStyle(fontSize: 15, color: blue),
+                    ),
+                  ],
                 ),
               ],
             ),
+            Spacer(),
+            IconButton(
+                onPressed: () {
+                  final Uri downloadLink = Uri.parse(url);
+                  launchUrl(downloadLink);
+                },
+                icon: Icon(Icons.download))
           ],
         ),
       ),

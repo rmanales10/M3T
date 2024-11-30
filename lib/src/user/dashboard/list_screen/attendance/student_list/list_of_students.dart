@@ -4,17 +4,20 @@ import 'package:app_attend/src/user/dashboard/list_screen/attendance/student_lis
 import 'package:app_attend/src/widgets/color_constant.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ListOfStudents extends StatefulWidget {
   final String subject;
   final String section;
   final String date;
+  final String attendanceId;
 
   const ListOfStudents({
     super.key,
     required this.subject,
     required this.section,
     required this.date,
+    required this.attendanceId,
   });
 
   @override
@@ -22,11 +25,15 @@ class ListOfStudents extends StatefulWidget {
 }
 
 class _ListOfStudentsState extends State<ListOfStudents> {
-  // Map to store each student's attendance status
-  RxMap<String, bool> attendanceStatus = <String, bool>{}.obs;
-  String? attendanceId;
   final _controller = Get.put(ListController());
   final documentService = Get.put(DocumentService());
+
+  // Initialize studentRecord list to track attendance
+  final RxList<Map<String, dynamic>> studentRecord =
+      <Map<String, dynamic>>[].obs;
+
+  // This will track the attendance for each student
+  final RxList<bool> isPresent = <bool>[].obs;
 
   @override
   Widget build(BuildContext context) {
@@ -54,47 +61,85 @@ class _ListOfStudentsState extends State<ListOfStudents> {
                   section: widget.section, subject: widget.subject);
               final studentList = _controller.studentList;
 
+              // Initialize isPresent list to track attendance for each student
+              if (isPresent.isEmpty) {
+                isPresent
+                    .addAll(List.generate(studentList.length, (_) => false));
+              }
+
               return DataTable(
                 columns: [
                   DataColumn(label: Text('No.')),
                   DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Action')),
+                  DataColumn(label: Text('Absent ?')),
                 ],
                 rows: studentList.asMap().entries.map((entry) {
-                  int index = entry.key + 1;
+                  int index = entry.key;
                   Map<String, dynamic> student = entry.value;
+
+                  // Initialize studentRecord list for each student
+                  if (studentRecord.length < studentList.length) {
+                    studentRecord.add({
+                      'name': student['full_name'],
+                      'present': isPresent[index] == false ? 'X' : '✓',
+                    });
+                  }
+
                   return DataRow(cells: [
-                    DataCell(Text('$index')),
-                    // DataCell(Text(student['idnumber'] ?? '')),
-                    DataCell(Text(student['full_name'] ?? 'NAA')),
+                    DataCell(Text('${index + 1}')),
+                    DataCell(Text(student['full_name'] ?? 'N/A')),
                     DataCell(Checkbox(
-                      value: true,
-                      onChanged: (value) {},
+                      value: isPresent[
+                          index], // Bind checkbox state to isPresent[index]
+                      onChanged: (value) {
+                        setState(() {
+                          isPresent[index] =
+                              value ?? false; // Update the attendance status
+                        });
+
+                        // Update studentRecord with the new attendance state
+                        studentRecord[index]['present'] =
+                            isPresent[index] == false ? 'X' : '✓';
+                      },
                     )),
                   ]);
                 }).toList(),
-                // rows: [
-                //   DataRow(cells: [
-                //     DataCell(Text('dasda')),
-                //     // DataCell(Text(student['idnumber'] ?? '')),
-                //     DataCell(Text('dasdas')),
-                //     DataCell(Checkbox(
-                //       value: true,
-                //       onChanged: (value) {},
-                //     )),
-                //   ])
-                // ],
               );
             }),
           ),
           Spacer(),
+          Text(
+            'Note! You can only submit once',
+            style: TextStyle(fontStyle: FontStyle.italic, color: Colors.red),
+          ),
+          SizedBox(height: 5),
           Align(
             alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: () {
-                Get.back();
-              },
-              child: Text('Save'),
+            child: Container(
+              width: 130,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: blue, borderRadius: BorderRadius.circular(5)),
+              child: TextButton(
+                onPressed: () {
+                  _controller.addAttendanceStudentRecord(
+                    attendanceId: widget.attendanceId,
+                    code: "Wala pa",
+                    datenow: widget.date,
+                    room: "Wala pa",
+                    schedule: "Wala pa",
+                    studentRecord: studentRecord,
+                    subject: widget.subject,
+                    teacher: "rolan wala pana",
+                    section: widget.section,
+                  );
+                  Get.back();
+                },
+                child: Text(
+                  'Submit',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
             ),
           ),
           SizedBox(height: 50),
@@ -159,6 +204,9 @@ class _ListOfStudentsState extends State<ListOfStudents> {
           log('Download your document here: $downloadLink');
           launchUrl(url);
         }
+      } catch (e) {
+        log('Error $e');
+      }
     } else if (value == 'csv') {
       log('Exporting to CSV...');
     }

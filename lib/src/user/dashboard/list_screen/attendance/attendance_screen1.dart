@@ -85,6 +85,7 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
                             subject: record['subject'],
                             section: record['section'],
                             date: formattedDate,
+                            attendanceId: record['id'],
                           )),
                       () => Get.dialog(AlertDialog(
                         title: Text('Confirmation'),
@@ -129,6 +130,7 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
             child: Text(label),
           ),
           IconButton(
+            tooltip: 'delete ?',
             onPressed: onDelete,
             icon: Icon(Icons.delete),
           ),

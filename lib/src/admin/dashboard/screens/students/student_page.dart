@@ -181,11 +181,13 @@ class StudentPage extends StatelessWidget {
                       content: Text('Are you sure you want to delete this?'),
                       actions: [
                         ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
+                            await _controller.deleteStudent(
+                                studentId: user['id']);
                             Get.back();
                             Get.snackbar(
                                 'Success', 'User deleted successfully');
-                            _firestore.getAllStudent();
+                            _controller.getAllStudents();
                           },
                           child: Text('Yes'),
                         ),
@@ -201,16 +203,17 @@ class StudentPage extends StatelessWidget {
                 ),
                 SizedBox(width: 10),
                 IconButton(
-                  onPressed: () {
+                  onPressed: () async {
                     isEditStudent.value = !isEditStudent.value;
-                    print('$isEditStudent');
-                    _controller.getStudentRecord(id: user['id']);
+
                     studentId.value = user['id'];
-                    name.text = user['full_name'];
-                    selectedYear.value = user['year_level'];
-                    selectedDepartment.value = user['department'];
-                    selectedSection.value = user['section'];
-                    dataS.value = user['subject'];
+                    await _controller.getStudentRecord(id: user['id']);
+                    final studentRecord = _controller.studentRecord;
+                    name.text = studentRecord['full_name'];
+                    selectedYear.value = studentRecord['year_level'];
+                    selectedDepartment.value = studentRecord['department'];
+                    selectedSection.value = studentRecord['section'];
+                    dataS.value = studentRecord['subject'];
 
                     // Get.snackbar(
                     //     'Info', 'Edit functionality not yet implemented.');

@@ -73,9 +73,7 @@ class StudentController extends GetxController {
     required List subject,
     required String sectionYearBlock,
   }) async {
-    String randomDoc = generateUniqueId();
     await _firestore.collection('students').doc(id).set({
-      'id': randomDoc,
       'full_name': fullname,
       'year_level': yearLevel,
       'department': department,
@@ -83,5 +81,13 @@ class StudentController extends GetxController {
       'subject': subject,
       'section_year_block': sectionYearBlock,
     }, SetOptions(merge: true));
+  }
+
+  Future<void> deleteStudent({required String studentId}) async {
+    try {
+      await _firestore.collection('students').doc(studentId).delete();
+    } catch (e) {
+      log('Unable to delete');
+    }
   }
 }

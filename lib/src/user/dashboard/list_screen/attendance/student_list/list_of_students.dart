@@ -259,7 +259,10 @@ class _ListOfStudentsState extends State<ListOfStudents> {
     log('Exporting to PDF...');
 
     try {
-      final response = await documentService.generateDocument(record: recorded);
+      final response = await documentService.generateDocument(
+          record: recorded,
+          subject: generate['subject'],
+          datenow: generate['datenow']);
       if (response.statusCode == 200) {
         // Get the download link from the response data
         final String downloadLink = response.body['data'];

@@ -11,6 +11,7 @@ class ListOfStudents extends StatefulWidget {
   final String section;
   final String date;
   final String attendanceId;
+  final bool isSubmitted;
 
   const ListOfStudents({
     super.key,
@@ -18,6 +19,7 @@ class ListOfStudents extends StatefulWidget {
     required this.section,
     required this.date,
     required this.attendanceId,
+    required this.isSubmitted,
   });
 
   @override
@@ -61,12 +63,15 @@ class _ListOfStudentsState extends State<ListOfStudents> {
                   section: widget.section, subject: widget.subject);
               final studentList = _controller.studentList;
 
-              // Initialize isPresent list to track attendance for each student
               if (isPresent.isEmpty) {
                 isPresent
                     .addAll(List.generate(studentList.length, (_) => false));
               }
-
+              if (widget.isSubmitted) {
+                return Center(
+                  child: Text('wala pa'),
+                );
+              }
               return DataTable(
                 columns: [
                   DataColumn(label: Text('No.')),
@@ -77,7 +82,6 @@ class _ListOfStudentsState extends State<ListOfStudents> {
                   int index = entry.key;
                   Map<String, dynamic> student = entry.value;
 
-                  // Initialize studentRecord list for each student
                   if (studentRecord.length < studentList.length) {
                     studentRecord.add({
                       'name': student['full_name'],
@@ -121,8 +125,8 @@ class _ListOfStudentsState extends State<ListOfStudents> {
               decoration: BoxDecoration(
                   color: blue, borderRadius: BorderRadius.circular(5)),
               child: TextButton(
-                onPressed: () {
-                  _controller.addAttendanceStudentRecord(
+                onPressed: () async {
+                  await _controller.addAttendanceStudentRecord(
                     attendanceId: widget.attendanceId,
                     code: "Wala pa",
                     datenow: widget.date,
@@ -133,6 +137,9 @@ class _ListOfStudentsState extends State<ListOfStudents> {
                     teacher: "rolan wala pana",
                     section: widget.section,
                   );
+                  await _controller.isSubmitted(
+                      attendanceId: widget.attendanceId);
+
                   Get.back();
                 },
                 child: Text(

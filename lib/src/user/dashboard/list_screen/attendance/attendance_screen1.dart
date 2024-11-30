@@ -5,6 +5,7 @@ import 'package:app_attend/src/user/dashboard/list_screen/attendance/student_lis
 import 'package:app_attend/src/widgets/color_constant.dart';
 import 'package:app_attend/src/widgets/reusable_function.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -72,7 +73,7 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
                   itemCount: _controller.allAttendance.length,
                   itemBuilder: (context, index) {
                     final record = _controller.allAttendance[index];
-                    Timestamp timestamp = record['date'] as Timestamp;
+                    Timestamp timestamp = record['date' ] as Timestamp;
                     DateTime dateTime = timestamp.toDate();
                     String formattedDate =
                         DateFormat('MMMM d, y').format(dateTime);
@@ -86,6 +87,7 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
                             section: record['section'],
                             date: formattedDate,
                             attendanceId: record['id'],
+                            isSubmitted: record['is_submitted'],
                           )),
                       () => Get.dialog(AlertDialog(
                         title: Text('Confirmation'),
@@ -102,6 +104,7 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
                               child: Text('No'))
                         ],
                       )),
+                      record['is_submitted'],
                     );
                   },
                 );
@@ -113,8 +116,8 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
     );
   }
 
-  Container createCard(
-      String label, VoidCallback onTap, VoidCallback onDelete) {
+  Container createCard(String label, VoidCallback onTap, VoidCallback onDelete,
+      bool isSubmitted) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 5),
       padding: EdgeInsets.symmetric(horizontal: 10),
@@ -129,6 +132,12 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
             onTap: onTap,
             child: Text(label),
           ),
+          isSubmitted
+              ? IconButton(
+                  onPressed: () {},
+                  icon: Icon(CupertinoIcons.doc_checkmark),
+                )
+              : SizedBox.shrink(),
           IconButton(
             tooltip: 'delete ?',
             onPressed: onDelete,

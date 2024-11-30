@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -42,13 +44,10 @@ class ListController extends GetxController {
     required var teacher,
     required var section,
   }) async {
-    var autoId = generateUniqueId();
-
-    await _firestore.collection('record').doc(autoId).set({
+    await _firestore.collection('record').doc(attendanceId).set({
       'attendance_id': attendanceId,
       'code': code,
       'datenow': datenow,
-      'id': autoId,
       'room': room,
       'schedule': schedule,
       'student_record': studentRecord,
@@ -56,30 +55,30 @@ class ListController extends GetxController {
       'teacher': teacher,
       'user_id': currentUser!.uid,
       'section': section,
+      'is_submitted': false,
     }, SetOptions(merge: true));
   }
 
-  RxList<Map<String, dynamic>> attendaceStudentRecord =
-      <Map<String, dynamic>>[].obs;
+  RxMap<String, dynamic> attendaceStudentRecord = <String, dynamic>{}.obs;
   Future<void> printAttendanceStudentRecord({required var attendanceId}) async {
-    QuerySnapshot querySnapshot = await _firestore
-        .collection('record')
-        .where('attendance_id', isEqualTo: attendanceId)
-        .get();
-    attendanceId.value = querySnapshot.docs
-        .map((doc) => {
-              'attendance_id': doc['attendance_id'],
-              'code': doc['code'],
-              'datenow': doc['datenow'],
-              'id': doc['id'],
-              'room': doc['room'],
-              'schedule': doc['schedule'],
-              'section': doc['section'],
-              'student_record': doc['student_record'],
-              'subject': doc['subject'],
-              'teacher': doc['teacher'],
-              'user_id': doc['user_id'],
-            })
-        .toList();
+    try {
+      DocumentSnapshot documentSnapshot =
+          await _firestore.collection('record').doc(attendanceId).get();
+      if (documentSnapshot.exists) {
+        attendaceStudentRecord.value =
+            documentSnapshot.data() as Map<String, dynamic>;
+      }
+    } catch (e) {
+      log('Error $e');
+    }
+  }
+
+  Future<void> isSubmitted({required var attendanceId}) async {
+    await _firestore
+        .collection('users')
+        .doc(currentUser!.uid)
+        .collection('attendance')
+        .doc(attendanceId)
+        .set({'is_submitted': true}, SetOptions(merge: true));
   }
 }

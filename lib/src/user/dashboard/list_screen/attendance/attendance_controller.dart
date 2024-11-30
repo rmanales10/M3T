@@ -24,6 +24,7 @@ class AttendanceController extends GetxController {
                 'subject': doc['subject'],
                 'section': doc['section'],
                 'time': doc['time'],
+                'is_submitted': doc['is_submitted'],
               })
           .toList();
       log('success : $allAttendance');

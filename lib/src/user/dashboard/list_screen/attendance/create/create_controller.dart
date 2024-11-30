@@ -34,6 +34,7 @@ class CreateController extends GetxController {
         'date': date,
         'time': time,
         'subject': subject,
+        'is_submitted': false,
       }, SetOptions(merge: true));
     } catch (e) {
       log('error $e');

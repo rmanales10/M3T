@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "401225501792",
+    "project_id": "project101-fe735",
+    "storage_bucket": "project101-fe735.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:401225501792:android:f762af8d7d4033efdb0705",
+        "android_client_info": {
+          "package_name": "com.example.app_attend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoHlR23XGBHO-_OFjX9imMUPdXTJimOXM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:401225501792:android:22173f7c4555fb92db0705",
+        "android_client_info": {
+          "package_name": "com.example.manales_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoHlR23XGBHO-_OFjX9imMUPdXTJimOXM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:401225501792:android:76b0aaad9ff3cf59db0705",
+        "android_client_info": {
+          "package_name": "com.example.manales_rolan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoHlR23XGBHO-_OFjX9imMUPdXTJimOXM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

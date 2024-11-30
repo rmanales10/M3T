@@ -1,0 +1,87 @@
+import 'dart:developer';
+import 'dart:math' as rnd;
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
+
+class StudentController extends GetxController {
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
+
+  String generateUniqueId() {
+    var random = rnd.Random();
+    int randomNumber = 1000000 + random.nextInt(9000000);
+    return 'student-$randomNumber';
+  }
+
+  Future<void> addStudent({
+    required String fullname,
+    required String department,
+    required String yearLevel,
+    required String section,
+    required List subject,
+    required String sectionYearBlock,
+  }) async {
+    String randomDoc = generateUniqueId();
+    await _firestore.collection('students').doc(randomDoc).set({
+      'id': randomDoc,
+      'full_name': fullname,
+      'year_level': yearLevel,
+      'department': department,
+      'section': section,
+      'subject': subject,
+      'section_year_block': sectionYearBlock,
+    }, SetOptions(merge: true));
+  }
+
+  RxList<Map<String, dynamic>> allStudents = <Map<String, dynamic>>[].obs;
+  Future<void> getAllStudents() async {
+    QuerySnapshot querySnapshot = await _firestore.collection('students').get();
+
+    allStudents.value = querySnapshot.docs
+        .map((doc) => {
+              'department': doc['department'],
+              'full_name': doc['full_name'],
+              'section': doc['section'],
+              'section_year_block': doc['section_year_block'],
+              'year_level': doc['year_level'],
+              'id': doc['id'],
+            })
+        .toList();
+  }
+
+  RxMap<String, dynamic> studentRecord = <String, dynamic>{}.obs;
+  Future<void> getStudentRecord({required String id}) async {
+    try {
+      DocumentSnapshot documentSnapshot =
+          await _firestore.collection('students').doc(id).get();
+      if (documentSnapshot.exists) {
+        studentRecord.value = documentSnapshot.data() as Map<String, dynamic>;
+      }
+    } catch (e) {
+      log('Error $e');
+    }
+  }
+
+  Future<void> editStudent({
+    required String id,
+    required String fullname,
+    required String department,
+    required String yearLevel,
+    required String section,
+    required List subject,
+    required String sectionYearBlock,
+  }) async {
+    String randomDoc = generateUniqueId();
+    await _firestore.collection('students').doc(id).set({
+      'id': randomDoc,
+      'full_name': fullname,
+      'year_level': yearLevel,
+      'department': department,
+      'section': section,
+      'subject': subject,
+      'section_year_block': sectionYearBlock,
+    }, SetOptions(merge: true));
+  }
+}

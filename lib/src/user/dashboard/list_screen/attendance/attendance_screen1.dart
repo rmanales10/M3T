@@ -21,14 +21,7 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
   final _controller = Get.put(AttendanceController());
 
   @override
-  void initState() {
-    super.initState();
-    initAttendance();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    _controller.getAllAttendance();
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
@@ -65,6 +58,7 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
             lineSpacer(size),
             Expanded(
               child: Obx(() {
+                _controller.getAllAttendance();
                 if (_controller.allAttendance.isEmpty) {
                   return Center(child: Text('No attendance records found'));
                 }
@@ -73,7 +67,7 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
                   itemCount: _controller.allAttendance.length,
                   itemBuilder: (context, index) {
                     final record = _controller.allAttendance[index];
-                    Timestamp timestamp = record['date' ] as Timestamp;
+                    Timestamp timestamp = record['date'] as Timestamp;
                     DateTime dateTime = timestamp.toDate();
                     String formattedDate =
                         DateFormat('MMMM d, y').format(dateTime);
@@ -146,9 +140,5 @@ class _AttendanceScreen1State extends State<AttendanceScreen1> {
         ],
       ),
     );
-  }
-
-  Future<void> initAttendance() async {
-    await _controller.getAllAttendance();
   }
 }

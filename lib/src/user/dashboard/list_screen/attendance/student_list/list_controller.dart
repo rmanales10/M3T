@@ -137,6 +137,7 @@ class ListController extends GetxController {
       'date': date,
       'type': type,
       'url': url,
+      'user_id': currentUser!.uid,
     }, SetOptions(merge: true));
   }
 }

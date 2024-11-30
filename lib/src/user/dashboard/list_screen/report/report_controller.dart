@@ -9,7 +9,10 @@ class ReportController extends GetxController {
 
   RxList<Map<String, dynamic>> reports = <Map<String, dynamic>>[].obs;
   Future<void> getReports() async {
-    QuerySnapshot querySnapshot = await _firestore.collection('reports').get();
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('reports')
+        .where('user_id', isEqualTo: currentUser!.uid)
+        .get();
     reports.value = querySnapshot.docs
         .map((doc) => {
               'attendance_id': doc['attendance_id'],

@@ -266,17 +266,18 @@ class _ListOfStudentsState extends State<ListOfStudents> {
       if (response.statusCode == 200) {
         // Get the download link from the response data
         final String downloadLink = response.body['data'];
-        final Uri url = Uri.parse(downloadLink);
-        log('Download your document here: $downloadLink');
+        // final Uri url = Uri.parse(downloadLink);
+        // log('Download your document here: $downloadLink');
         // launchUrl(url);
 
         await _controller.storedUrl(
-            attendanceId: attendanceId,
-            subject: generate['subject'],
-            section: generate['section'],
-            date: generate['datenow'],
-            type: 'Docx',
-            url: downloadLink);
+          attendanceId: attendanceId,
+          subject: generate['subject'],
+          section: generate['section'],
+          date: generate['datenow'],
+          type: 'Docx',
+          url: downloadLink,
+        );
         Get.back();
         Get.snackbar('Success', 'Report generated successfully! ');
       }

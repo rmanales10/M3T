@@ -28,11 +28,16 @@ ElevatedButton myButton(String label, Color color, VoidCallback onPressed) {
   );
 }
 
-TextFormField myTextField(String label, IconData icon,
-    TextEditingController controller, FormFieldValidator<String> validator) {
+TextFormField myTextField(
+    String label,
+    IconData icon,
+    TextEditingController controller,
+    FormFieldValidator<String> validator,
+    TextInputType inputType) {
   return TextFormField(
     controller: controller,
     validator: validator,
+    keyboardType: inputType,
     decoration: InputDecoration(
       hintText: label,
       prefixIcon: Icon(icon),

@@ -7,8 +7,6 @@ class AuthService extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? get currentUser => _auth.currentUser;
 
-  get email => null;
-
   // Register user with Firebase Auth and store in Firestore
   Future<void> registerUser(
       String fullname, String email, String password, String phone) async {
@@ -19,6 +17,9 @@ class AuthService extends GetxController {
         password: password.trim(),
       );
 
+      // Send email verification
+      await userCredential.user!.sendEmailVerification();
+
       // Save user information to Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'fullname': fullname.trim(),
@@ -27,7 +28,7 @@ class AuthService extends GetxController {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      Get.snackbar('Success', 'Account created successfully!',
+      Get.snackbar('Success', 'Account created! Please verify your email.',
           snackPosition: SnackPosition.TOP);
       Get.toNamed('/login'); // Navigate to the login page
     } catch (e) {
@@ -38,16 +39,39 @@ class AuthService extends GetxController {
   // Login user with Firebase Auth
   Future<void> loginUser(String email, String password) async {
     try {
-      await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
 
-      Get.snackbar('Success', 'Logged in successfully!',
-          snackPosition: SnackPosition.TOP);
-      Get.offAllNamed('/dashboard'); // Navigate to the dashboard page
+      // Check if email is verified
+      if (userCredential.user!.emailVerified) {
+        Get.snackbar('Success', 'Logged in successfully!',
+            snackPosition: SnackPosition.TOP);
+        Get.offAllNamed('/dashboard'); // Navigate to the dashboard page
+      } else {
+        // Sign out the user if email is not verified
+        await _auth.signOut();
+        Get.snackbar('Error', 'Please verify your email first!',
+            snackPosition: SnackPosition.TOP);
+      }
     } catch (e) {
       Get.snackbar('Error', 'Incorrect Email or Password',
+          snackPosition: SnackPosition.TOP);
+    }
+  }
+
+  // Resend email verification
+  Future<void> sendEmailVerification() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+        Get.snackbar('Success', 'Verification email sent!',
+            snackPosition: SnackPosition.TOP);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to send verification email',
           snackPosition: SnackPosition.TOP);
     }
   }
@@ -56,13 +80,13 @@ class AuthService extends GetxController {
     await _auth.signOut();
     Get.snackbar('Success', 'User Logged out successfully!',
         snackPosition: SnackPosition.TOP);
-    Get.offAllNamed('/welcome'); // Navigate to the dashboard page
+    Get.offAllNamed('/welcome'); // Navigate to the welcome page
   }
 
   Future<void> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
-      Get.snackbar('Success', 'Password reset email sent! Check your inbox.!',
+      Get.snackbar('Success', 'Password reset email sent! Check your inbox.',
           snackPosition: SnackPosition.TOP);
     } catch (e) {
       Get.snackbar('Error', 'Please check your connection!',

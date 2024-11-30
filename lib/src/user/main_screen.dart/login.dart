@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         formLabel('Email'),
                         SizedBox(height: 8.0),
                         myTextField('Enter your email address', Icons.email,
-                            email, emailValidator),
+                            email, emailValidator, TextInputType.emailAddress),
                         SizedBox(height: 20.0),
                         formLabel('Password'),
                         SizedBox(height: 8.0),

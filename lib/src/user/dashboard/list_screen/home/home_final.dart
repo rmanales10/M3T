@@ -36,37 +36,12 @@ class _HomeFinalState extends State<HomeFinal> {
     authService = Get.put(AuthService());
     firestoreService = Get.put(FirestoreService());
 
-    // Fetch user data and subjects/sections if user is authenticated
     if (authService.currentUser != null) {
       firestoreService.fetchUserData(authService.currentUser!.uid);
       firestoreService
           .fetchSectionsAndSubjects(userId: authService.currentUser!.uid)
           .then((_) {
-        subjectNames.value = firestoreService.subjects
-            .map((record) {
-              final subject = record['subject'] as String;
-              final section = record['section'] as String;
-              final recordTime = record['time'] as String;
-              final timestamp = record['date'];
-
-              DateTime recordDate;
-              if (timestamp is Timestamp) {
-                recordDate = timestamp.toDate();
-              } else if (timestamp is DateTime) {
-                recordDate = timestamp;
-              } else {
-                recordDate = DateTime.now();
-              }
-
-              // Format date as MM/dd/yyyy for consistent formatting
-              final dateTime = DateFormat('MM/dd/yyyy').format(recordDate);
-              final formattedString = '$subject $section $dateTime $recordTime';
-              return formattedString;
-            })
-            .toSet()
-            .toList();
-
-        // Initialize selected subject if the list is not empty
+        subjectNames.value = ['Electibe'];
         if (subjectNames.isNotEmpty) {
           selectedSubject.value = subjectNames[0];
           _updateDateTimeFromSelection(subjectNames[0]);
@@ -75,38 +50,35 @@ class _HomeFinalState extends State<HomeFinal> {
     }
   }
 
+  String _formatSubject(Map<String, dynamic> record) {
+    final subject = record['subject'] as String;
+    final section = record['section'] as String;
+    final recordTime = record['time'] as String;
+    final timestamp = record['date'];
+    DateTime recordDate =
+        timestamp is Timestamp ? timestamp.toDate() : (timestamp as DateTime);
+    return '$subject $section ${DateFormat('MM/dd/yyyy').format(recordDate)} $recordTime';
+  }
+
   void _updateDateTimeFromSelection(String selected) {
-    log('Selected item: $selected'); // Debug: Print the selected item
-
-    // Split the selected string by spaces
+    log('Selected item: $selected');
     final parts = selected.split(' ');
-
-    // Ensure there are enough parts to extract date and time
-    if (parts.length < 2) {
-      log('Error: Selected string format does not match expected pattern');
-      return;
-    }
-
-    // Extract date and time strings (the last two parts)
+    if (parts.length < 2) return;
     final selectedDateTimeStr =
         '${parts[parts.length - 2]} ${parts[parts.length - 1]}';
-
     try {
-      // Parse the combined date and time string
       final selectedDateTime =
           DateFormat('MM/dd/yyyy hh:mm a').parse(selectedDateTimeStr);
-
-      // Set the date and time values
       date.value = selectedDateTime;
-      time.value =
-          DateFormat('hh:mm a').format(selectedDateTime); // Format time only
+      time.value = DateFormat('hh:mm a').format(selectedDateTime);
     } catch (e) {
-      log('Error parsing date and time: $e'); // Log parsing error
+      log('Error parsing date and time: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -117,67 +89,19 @@ class _HomeFinalState extends State<HomeFinal> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // User profile widget
-              Obx(() => Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 10),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: blue,
-                    ),
-                    child: UserProfileWidget(
-                      name: firestoreService.userData['fullname'] ?? '',
-                      email: 'Instructor',
-                      profileImageUrl: 'assets/logo.png',
-                    ),
-                  )),
+              _buildUserProfile(),
               const SizedBox(height: 20),
-
-              // Time clock widget
-              Obx(() => TimeClockWidget(
-                    time: timeController.currentTime.value,
-                    role: timeController.timeOfDay.value,
-                  )),
+              _buildTimeClock(),
               const SizedBox(height: 20),
-
-              // Dropdown for subject selection
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: selectList(selectedSubject, subjectNames),
-              ),
+              _buildSubjectDropdown(size),
               const SizedBox(height: 20),
-
-              // InOutStatus widget with live date and time
-              Obx(() => InOutStatusWidget(
-                    inCount: firestoreService.presentCount.value,
-                    breakCount: firestoreService.totalCount.value,
-                    outCount: firestoreService.absentCount.value,
-                    dateTime:
-                        '${DateFormat('EEEE, d MMM yyyy').format(date.value)} ${time.value}',
-                    firstIn: time.value,
-                    lastOut: "",
-                  )),
+              _buildInOutStatus(),
               const SizedBox(height: 20),
-
-              // Upcoming reminders widget
-              UpcomingRemindersWidget(
-                reminders: [
-                  Reminder(
-                    month: "May",
-                    day: 27,
-                    notes: ["Pay period cycle ends in 2 days"],
-                  ),
-                  Reminder(
-                    month: "May",
-                    day: 28,
-                    notes: ["Labour Day", "Timesheet approvals due date"],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+              _buildUpcomingReminders(),
             ],
           ),
         ),
@@ -185,11 +109,31 @@ class _HomeFinalState extends State<HomeFinal> {
     );
   }
 
-  // Dropdown list for selecting a subject
-  Container selectList(RxString selectedValue, RxList<String> items) {
+  Widget _buildUserProfile() {
+    return Obx(() => Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: blue,
+          ),
+          child: UserProfileWidget(
+            name: firestoreService.userData['fullname'] ?? 'No Name',
+            email: 'Instructor',
+            profileImageUrl: 'assets/logo.png',
+          ),
+        ));
+  }
+
+  Widget _buildTimeClock() {
+    return Obx(() => TimeClockWidget(
+          time: timeController.currentTime.value,
+          role: timeController.timeOfDay.value,
+        ));
+  }
+
+  Widget _buildSubjectDropdown(Size size) {
     return Container(
-      padding: const EdgeInsets.only(left: 10),
-      width: 150,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: Colors.white,
@@ -202,28 +146,55 @@ class _HomeFinalState extends State<HomeFinal> {
           ),
         ],
       ),
-      child: Obx(
-        () => DropdownButton<String>(
-          value: selectedValue.value,
-          icon: const Icon(Icons.arrow_drop_down),
-          elevation: 16,
-          underline: const SizedBox(),
-          style: const TextStyle(color: Colors.black),
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              selectedValue.value = newValue;
-              _updateDateTimeFromSelection(newValue);
-            }
-          },
-          items: items.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          isExpanded: true,
+      child: Obx(() => DropdownButton<String>(
+            value: selectedSubject.value,
+            icon: const Icon(Icons.arrow_drop_down),
+            elevation: 16,
+            underline: const SizedBox(),
+            style: const TextStyle(color: Colors.black),
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                selectedSubject.value = newValue;
+                _updateDateTimeFromSelection(newValue);
+              }
+            },
+            items: subjectNames.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            isExpanded: true,
+          )),
+    );
+  }
+
+  Widget _buildInOutStatus() {
+    return Obx(() => InOutStatusWidget(
+          inCount: firestoreService.presentCount.value,
+          breakCount: firestoreService.totalCount.value,
+          outCount: firestoreService.absentCount.value,
+          dateTime:
+              '${DateFormat('EEEE, d MMM yyyy').format(date.value)} ${time.value}',
+          firstIn: time.value,
+          lastOut: "",
+        ));
+  }
+
+  Widget _buildUpcomingReminders() {
+    return UpcomingRemindersWidget(
+      reminders: [
+        Reminder(
+          month: "May",
+          day: 27,
+          notes: ["Pay period cycle ends in 2 days"],
         ),
-      ),
+        Reminder(
+          month: "May",
+          day: 28,
+          notes: ["Labour Day", "Timesheet approvals due date"],
+        ),
+      ],
     );
   }
 }

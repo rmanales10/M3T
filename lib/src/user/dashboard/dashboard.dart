@@ -1,4 +1,4 @@
-import 'package:app_attend/src/user/dashboard/list_screen/attendance/attendance_screen/attendance_screen1.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/attendance/attendance_screen/attendance_screen.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/home/home_final.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/report/report_screen.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/profile/profile_screen.dart';
@@ -17,11 +17,11 @@ class _DashboardState extends State<Dashboard> {
 
   DropdownMenuItem<String> buildMenuItem(String item) =>
       DropdownMenuItem(child: Text(item));
-  List<Widget> body = const [
-    HomeFinal(),
-    AttendanceScreen1(),
+  List<Widget> body = [
+    const HomeFinal(),
+    const AttendanceScreen(),
     ReportScreen(),
-    ProfileScreen()
+    const ProfileScreen()
   ];
 
   @override

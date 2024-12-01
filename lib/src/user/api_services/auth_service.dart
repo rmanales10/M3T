@@ -6,6 +6,7 @@ class AuthService extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? get currentUser => _auth.currentUser;
+  RxBool isLoggin = false.obs;
 
   // Register user with Firebase Auth and store in Firestore
   Future<void> registerUser(
@@ -39,6 +40,7 @@ class AuthService extends GetxController {
   // Login user with Firebase Auth
   Future<void> loginUser(String email, String password) async {
     try {
+      isLoggin.value = true;
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
@@ -54,10 +56,12 @@ class AuthService extends GetxController {
         await _auth.signOut();
         Get.snackbar('Error', 'Please verify your email first!',
             snackPosition: SnackPosition.TOP);
+        isLoggin.value = false;
       }
     } catch (e) {
       Get.snackbar('Error', 'Incorrect Email or Password',
           snackPosition: SnackPosition.TOP);
+      isLoggin.value = false;
     }
   }
 

@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loginUser() async {
     if (formKey.currentState?.validate() == true) {
-      _authService.loginUser(email.text, password.text);
+      await _authService.loginUser(email.text, password.text);
     }
   }
 
@@ -91,7 +91,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
                     children: [
-                      myButton('Log in', blue, _loginUser), // Call _loginUser
+                      Obx(() => myButton(
+                          _authService.isLoggin.value
+                              ? 'Logging in...'
+                              : 'Log in',
+                          blue,
+                          _loginUser)), // Call _loginUser
                       SizedBox(height: 10),
                       labelTap(context, 'Don\'t have an account? ',
                           'Create an Account', () => Get.toNamed('/register'))

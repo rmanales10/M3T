@@ -50,7 +50,7 @@ class _ListOfStudentsState extends State<ListOfStudents> {
             children: [
               _buildInfoContainer('Subject:', widget.subject),
               _buildInfoContainer('Section:', widget.section),
-              _buildInfoContainer('Date:', widget.date),
+              // _buildInfoContainer('Date:', widget.date),
             ],
           ),
           SizedBox(height: 16),
@@ -170,7 +170,13 @@ class _ListOfStudentsState extends State<ListOfStudents> {
               DataCell(Text('${index + 1}')),
               DataCell(Text(student['full_name'] ?? student['name'] ?? 'N/A')),
               DataCell(widget.isSubmitted
-                  ? Text(student['present'] ?? 'N/A')
+                  ? Text(
+                      student['present'] ?? 'N/A',
+                      style: TextStyle(
+                          color: student['present'] == '✓'
+                              ? Colors.green
+                              : Colors.red),
+                    )
                   : Checkbox(
                       value: isPresent[index],
                       onChanged: (value) {

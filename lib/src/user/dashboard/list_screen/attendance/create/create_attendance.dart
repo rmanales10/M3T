@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class CreateAttendance extends StatefulWidget {
-  const CreateAttendance({super.key});
+  const CreateAttendance({Key? key}) : super(key: key);
 
   @override
   State<CreateAttendance> createState() => _CreateAttendanceState();
@@ -19,8 +19,7 @@ class _CreateAttendanceState extends State<CreateAttendance> {
   final _controller = Get.put(CreateController());
 
   // Dropdown reactive variables
-
-  final selectedDepartment = 'BSIT'.obs;
+  final selectedDepartment = RxnString();
   final List<String> department = [
     'BSIT',
     'BFPT',
@@ -28,10 +27,11 @@ class _CreateAttendanceState extends State<CreateAttendance> {
     'BTLED - ICT',
     'BTLED - IA',
   ];
-  final RxString selectedSection = ''.obs;
-  final RxList<String> sections = <String>[].obs;
-  final RxString selectedSubject = ''.obs;
-  final RxList<String> subjects = <String>[].obs;
+  final selectedSection = RxnString();
+  final sections = RxList<String>();
+  final selectedSubject = RxnString();
+  final subjects = RxList<String>();
+  final isLoading = RxBool(false);
 
   @override
   Widget build(BuildContext context) {
@@ -42,82 +42,126 @@ class _CreateAttendanceState extends State<CreateAttendance> {
         title: const Text('Create Attendance'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildDropdownSection(
-                label: 'Select Department:',
-                selectedValue: selectedDepartment,
-                options: department,
-                onChanged: (newValue) async {
-                  subjects.clear();
-                  selectedDepartment.value = newValue!;
-                  await _controller.fetchSubject(
-                      department: selectedDepartment.value);
-                  for (var s in _controller.subjects) {
-                    if (subjects.contains(s['course_code'])) {
-                      break;
-                    }
-                    subjects
-                        .addNonNull('${s['course_code']} ${s['subject_name']}');
-                  }
-                  selectedSubject.value = subjects.first;
-                },
-              ),
-              const SizedBox(height: 20),
-              _buildDropdownSection(
-                label: 'Select Subject:',
-                selectedValue: selectedSubject,
-                options: subjects,
-                onChanged: (newValue) async {
-                  sections.clear();
-                  selectedSubject.value = newValue!;
-                  await _controller.fetchSection(
-                      subject: selectedSubject.value);
+      body: Obx(() => isLoading.value
+          ? const Center(child: CircularProgressIndicator())
+          : _buildAttendanceForm(size)),
+    );
+  }
 
-                  for (var s in _controller.sections) {
-                    if (sections.contains(s['section_year_block'])) {
-                      break;
-                    }
-                    sections.addNonNull('${s['section_year_block']}');
-                  }
-                  selectedSection.value = sections.first;
-                },
-              ),
-              const SizedBox(height: 20),
-              _buildDropdownSection(
-                label: 'Select Section:',
-                selectedValue: selectedSection,
-                options: sections,
-                onChanged: (newValue) => selectedSection.value = newValue!,
-              ),
-              const SizedBox(height: 20),
-              _buildDateSelector(context),
-              const SizedBox(height: 20),
-              _buildTimeSelector(),
-              const SizedBox(height: 30),
+  Widget _buildAttendanceForm(Size size) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDepartmentDropdown(),
+            const SizedBox(height: 20),
+            if (selectedDepartment.value != null) _buildSubjectDropdown(),
+            const SizedBox(height: 20),
+            if (selectedSubject.value != null) _buildSectionDropdown(),
+            const SizedBox(height: 20),
+            if (selectedSection.value != null) _buildDateSelector(context),
+            const SizedBox(height: 20),
+            if (selectedSection.value != null) _buildTimeSelector(),
+            const SizedBox(height: 30),
+            if (selectedSection.value != null)
               Center(child: _buildAddAttendanceButton(size)),
-            ],
-          ),
+          ],
         ),
       ),
     );
   }
 
+  Widget _buildDepartmentDropdown() {
+    return _buildDropdownSection(
+      label: 'Select Department:',
+      selectedValue: selectedDepartment,
+      options: department,
+      onChanged: (newValue) async {
+        try {
+          isLoading.value = true;
+          selectedDepartment.value = newValue!;
+          subjects.clear();
+          selectedSubject.value = null;
+          selectedSection.value = null;
+
+          await _controller.fetchSubject(department: selectedDepartment.value!);
+
+          for (var s in _controller.subjects) {
+            final courseSubject = '${s['course_code']} ${s['subject_name']}';
+            if (!subjects.contains(courseSubject)) {
+              subjects.add(courseSubject);
+            }
+          }
+
+          if (subjects.isNotEmpty) {
+            selectedSubject.value = subjects.first;
+          }
+        } catch (e) {
+          _showErrorSnackbar('Failed to fetch subjects');
+        } finally {
+          isLoading.value = false;
+        }
+      },
+    );
+  }
+
+  Widget _buildSubjectDropdown() {
+    return _buildDropdownSection(
+      label: 'Select Subject:',
+      selectedValue: selectedSubject,
+      options: subjects,
+      onChanged: (newValue) async {
+        try {
+          isLoading.value = true;
+          selectedSubject.value = newValue!;
+          sections.clear();
+          selectedSection.value = null;
+
+          await _controller.fetchSection(subject: selectedSubject.value!);
+
+          for (var s in _controller.sections) {
+            final sectionBlock = s['section_year_block'];
+            if (!sections.contains(sectionBlock)) {
+              sections.add(sectionBlock);
+            }
+          }
+
+          if (sections.isNotEmpty) {
+            selectedSection.value = sections.first;
+          }
+        } catch (e) {
+          _showErrorSnackbar('Failed to fetch sections');
+        } finally {
+          isLoading.value = false;
+        }
+      },
+    );
+  }
+
+  Widget _buildSectionDropdown() {
+    return _buildDropdownSection(
+      label: 'Select Section:',
+      selectedValue: selectedSection,
+      options: sections,
+      onChanged: (newValue) => selectedSection.value = newValue!,
+    );
+  }
+
   Widget _buildDropdownSection({
     required String label,
-    required RxString selectedValue,
+    required RxnString selectedValue,
     required List<String> options,
     required ValueChanged<String?> onChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -125,29 +169,40 @@ class _CreateAttendanceState extends State<CreateAttendance> {
             border: Border.all(color: Colors.black),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Obx(
-            () => DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: selectedValue.value,
-                isExpanded: true,
-                icon: const Icon(Icons.arrow_drop_down),
-                style: const TextStyle(fontSize: 16),
-                items: options.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(
-                      value,
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  );
-                }).toList(),
-                onChanged: onChanged,
-              ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedValue.value,
+              isExpanded: true,
+              hint: const Text('Select an option'),
+              icon: const Icon(Icons.arrow_drop_down),
+              style: const TextStyle(fontSize: 16),
+              items: options.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(
+                    value,
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                );
+              }).toList(),
+              onChanged: options.isEmpty ? null : onChanged,
             ),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate.value ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      selectedDate.value = picked;
+    }
   }
 
   Widget _buildDateSelector(BuildContext context) {
@@ -183,6 +238,19 @@ class _CreateAttendanceState extends State<CreateAttendance> {
     );
   }
 
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      final now = DateTime.now();
+      final selectedTime =
+          DateTime(now.year, now.month, now.day, picked.hour, picked.minute);
+      _timeController.text = _timeFormat.format(selectedTime);
+    }
+  }
+
   Widget _buildTimeSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,61 +281,65 @@ class _CreateAttendanceState extends State<CreateAttendance> {
   }
 
   Widget _buildAddAttendanceButton(Size size) {
+    final canCreateAttendance = selectedDepartment.value != null &&
+        selectedSubject.value != null &&
+        selectedSection.value != null &&
+        selectedDate.value != null &&
+        _timeController.text.isNotEmpty;
+
     return SizedBox(
       width: size.width * 0.7,
       height: 50,
       child: ElevatedButton.icon(
-        onPressed: _createAttendance,
+        onPressed: canCreateAttendance ? _createAttendance : null,
         icon: const Icon(Icons.add_circle_outline),
         label: const Text('Add Attendance', style: TextStyle(fontSize: 16)),
         style: ElevatedButton.styleFrom(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           backgroundColor: Colors.blueAccent,
           foregroundColor: Colors.white,
+          disabledBackgroundColor: Colors.grey,
         ),
       ),
     );
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate.value ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      selectedDate.value = picked;
-    }
-  }
-
-  Future<void> _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null) {
-      final now = DateTime.now();
-      final selectedTime =
-          DateTime(now.year, now.month, now.day, picked.hour, picked.minute);
-      _timeController.text = _timeFormat.format(selectedTime);
-    }
-  }
-
   Future<void> _createAttendance() async {
-    if (selectedDate.value == null || _timeController.text.isEmpty) {
-      Get.snackbar('Error', 'Please select a valid date and time.');
+    if (selectedDepartment.value == null ||
+        selectedSubject.value == null ||
+        selectedSection.value == null ||
+        selectedDate.value == null ||
+        _timeController.text.isEmpty) {
+      _showErrorSnackbar('Please fill in all required fields');
       return;
     }
 
-    await _controller.createAttendance(
-      subject: selectedSubject.value,
-      section: selectedSection.value,
-      date: selectedDate.value,
-      time: _timeController.value.text,
-    );
+    try {
+      isLoading.value = true;
+      await _controller.createAttendance(
+        subject: selectedSubject.value!,
+        section: selectedSection.value!,
+        date: selectedDate.value!,
+        time: _timeController.text,
+      );
 
-    Get.back();
-    Get.snackbar('Success', 'Attendance created successfully!');
+      Get.back();
+      Get.snackbar('Success', 'Attendance created successfully!',
+          snackPosition: SnackPosition.BOTTOM);
+    } catch (e) {
+      _showErrorSnackbar('Failed to create attendance: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void _showErrorSnackbar(String message) {
+    Get.snackbar(
+      'Error',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
   }
 }

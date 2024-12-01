@@ -57,7 +57,7 @@ class _HomeFinalState extends State<HomeFinal> {
     final timestamp = record['date'];
     DateTime recordDate =
         timestamp is Timestamp ? timestamp.toDate() : (timestamp as DateTime);
-    return '$subject $section ${DateFormat('MM/dd/yyyy').format(recordDate)} $recordTime';
+    return '$subject $section ${DateFormat('MM/dd/yyyy').format(recordDate)} $recordTime'; 
   }
 
   void _updateDateTimeFromSelection(String selected) {

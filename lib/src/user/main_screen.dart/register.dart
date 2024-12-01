@@ -13,16 +13,20 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  RxBool isObscured = true.obs;
+  final RxBool isObscured = true.obs;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController fullnameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
-  RxBool isTermsAccepted = false.obs; // RxBool for terms acceptance
-
+  final RxBool isTermsAccepted = false.obs; // RxBool for terms acceptance
   final AuthService _authService = Get.put(AuthService());
+
+  @override
+  void initState() {
+    super.initState();
+    phoneController.text = "09";
+  }
 
   void _registerUser() {
     if (_formKey.currentState?.validate() == true && isTermsAccepted.value) {
@@ -33,13 +37,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         phoneController.text,
       );
     } else {
-      // Show a message if terms are not accepted
       Get.snackbar(
-          'Error', 'You must accept the Terms and Privacy Policy to register.');
+        'Error',
+        'You must accept the Terms and Privacy Policy to register.',
+        snackPosition: SnackPosition.TOP,
+      );
     }
   }
 
-  // Function to show Terms and Privacy Policy dialog
   void _showTermsAndPrivacyPolicyDialog() {
     showDialog(
       context: context,
@@ -50,7 +55,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20.0),
                 const Text(
                   'Data Collection and Use: \n\n'
                   'In compliance with the Data Privacy Act of 2012 in the Philippines, personal data is collected, used, '
@@ -75,9 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Close'),
             ),
           ],
@@ -87,136 +89,138 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    phoneController.text = "09";
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: blue,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Text(
-                  'Create account',
-                  style: TextStyle(
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: 30.0),
-                Container(
-                  padding: EdgeInsets.all(24.0),
-                  margin: EdgeInsets.symmetric(horizontal: 24.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16.0),
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        formLabel('Full Name'),
-                        myTextField(
-                            'Enter fullname',
-                            Icons.person,
-                            fullnameController,
-                            fullNameValidator,
-                            TextInputType.text),
-                        const SizedBox(height: 8.0),
-                        formLabel('Email'),
-                        myTextField(
-                            'Enter your email address',
-                            Icons.email,
-                            emailController,
-                            emailValidator,
-                            TextInputType.emailAddress),
-                        const SizedBox(height: 8.0),
-                        formLabel('Phone Number'),
-                        myTextField(
-                            'Enter phone number',
-                            Icons.phone,
-                            phoneController,
-                            phoneNumberValidator,
-                            TextInputType.phone),
-                        const SizedBox(height: 8.0),
-                        formLabel('Password'),
-                        Obx(
-                          () => myPasswordField('Insert password',
-                              Icons.visibility, isObscured.value, () {
-                            isObscured.value = !isObscured.value;
-                          }, passwordController, passwordValidator),
-                        ),
-                        SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Obx(
-                              () => Checkbox(
-                                value: isTermsAccepted.value,
-                                onChanged: (bool? value) {
-                                  isTermsAccepted.value = value!;
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: RichText(
-                                text: TextSpan(
-                                  style: TextStyle(color: Colors.black),
-                                  children: [
-                                    TextSpan(text: 'I agree to the '),
-                                    TextSpan(
-                                      text: 'Terms and Privacy Policy',
-                                      style: TextStyle(
-                                          color: blue,
-                                          fontWeight: FontWeight.bold),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          _showTermsAndPrivacyPolicyDialog(); // Show dialog
-                                        },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+              child: Column(
+                children: [
+                  Text(
+                    'Create account',
+                    style: TextStyle(
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                ),
-                SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    children: [
-                      // Terms and Privacy Policy Section
-
-                      Container(
-                        padding: EdgeInsets.symmetric(vertical: 10.0),
-                        alignment: Alignment.center,
-                        child: labelTap(
-                          context,
-                          'Already have an account? ',
-                          'Log in',
-                          () => Get.toNamed('/login'),
-                        ),
+                  const SizedBox(height: 30.0),
+                  Container(
+                    padding: const EdgeInsets.all(24.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTextField('Full Name', Icons.person,
+                              fullnameController, fullNameValidator),
+                          _buildTextField('Email', Icons.email, emailController,
+                              emailValidator),
+                          _buildTextField('Phone Number', Icons.phone,
+                              phoneController, phoneNumberValidator),
+                          _buildPasswordField(),
+                          _buildTermsCheckbox(),
+                        ],
                       ),
-                      myButton('Continue', blue,
-                          _registerUser) // Call _registerUser on button press
-                    ],
+                    ),
                   ),
+                  const SizedBox(height: 20),
+                  _buildLoginLink(),
+                  myButton('Continue', blue, _registerUser),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(String label, IconData icon,
+      TextEditingController controller, String? Function(String?) validator) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        formLabel(label),
+        myTextField(
+          'Enter $label',
+          icon,
+          controller,
+          validator,
+          TextInputType.text,
+        ),
+        const SizedBox(height: 8.0),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        formLabel('Password'),
+        Obx(() => myPasswordField(
+              'Insert password',
+              Icons.visibility,
+              isObscured.value,
+              () => isObscured.value = !isObscured.value,
+              passwordController,
+              passwordValidator,
+            )),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _buildTermsCheckbox() {
+    return Row(
+      children: [
+        Obx(
+          () => Checkbox(
+            value: isTermsAccepted.value,
+            onChanged: (bool? value) {
+              isTermsAccepted.value = value!;
+            },
+          ),
+        ),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: TextStyle(color: Colors.black),
+              children: [
+                const TextSpan(text: 'I agree to the '),
+                TextSpan(
+                  text: 'Terms and Privacy Policy',
+                  style: TextStyle(color: blue, fontWeight: FontWeight.bold),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = _showTermsAndPrivacyPolicyDialog,
                 ),
               ],
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildLoginLink() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      alignment: Alignment.center,
+      child: labelTap(
+        context,
+        'Already have an account? ',
+        'Log in',
+        () => Get.toNamed('/login'),
       ),
     );
   }

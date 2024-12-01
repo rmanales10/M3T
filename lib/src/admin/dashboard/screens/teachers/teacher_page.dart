@@ -112,7 +112,6 @@ class TeacherPage extends StatelessWidget {
                       columns: [
                         DataColumn(label: Text('No.')),
                         DataColumn(label: Text('Name')),
-                        DataColumn(label: Text('Department')),
                         DataColumn(label: Text('Subjects')),
                         DataColumn(label: Text('Sections')),
                         DataColumn(label: Text('Actions')),
@@ -130,7 +129,7 @@ class TeacherPage extends StatelessWidget {
                         return DataRow(cells: [
                           DataCell(Text('$index')), // Row number
                           DataCell(Text(user['fullname'] ?? 'N/A')),
-                          DataCell(Text(user['email'] ?? 'N/A')),
+
                           DataCell(Text(user['phone'] ?? 'N/A')),
                           DataCell(Text(formattedDate)), // Formatted DateTime
                           DataCell(Row(

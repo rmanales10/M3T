@@ -1,13 +1,10 @@
 import 'dart:developer';
 import 'dart:math' as rnd;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 class StudentController extends GetxController {
   final _firestore = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
 
   String generateUniqueId() {
     var random = rnd.Random();
@@ -89,5 +86,21 @@ class StudentController extends GetxController {
     } catch (e) {
       log('Unable to delete');
     }
+  }
+
+  RxList<Map<String, dynamic>> subjects = <Map<String, dynamic>>[].obs;
+  Future<void> fetchSubject({required var department}) async {
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('subjects')
+        .where('department', isEqualTo: department)
+        .get();
+    subjects.value = querySnapshot.docs
+        .map((doc) => {
+              'id': doc['id'],
+              'course_code': doc['course_code'],
+              'department': doc['department'],
+              'subject_name': doc['subject_name'],
+            })
+        .toList();
   }
 }

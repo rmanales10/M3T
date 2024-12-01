@@ -1,3 +1,4 @@
+import 'package:app_attend/firebase_options.dart';
 import 'package:app_attend/src/admin/dashboard/dashboard.dart';
 import 'package:app_attend/src/admin/main_screen/admin_login.dart';
 import 'package:app_attend/src/user/dashboard/dashboard.dart';
@@ -12,19 +13,9 @@ import 'src/user/main_screen.dart/welcome.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-        options: const FirebaseOptions(
-            apiKey: "AIzaSyDoLT3mc5M94ROOMzTkd8Wsck78SWGESC8",
-            authDomain: "project101-fe735.firebaseapp.com",
-            projectId: "project101-fe735",
-            storageBucket: "project101-fe735.firebasestorage.app",
-            messagingSenderId: "401225501792",
-            appId: "1:401225501792:web:ca5288e4e2ee10cfdb0705",
-            measurementId: "G-6BC7VJSLHR"));
-  } else {
-    await Firebase.initializeApp();
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   kIsWeb ? runApp(Admin()) : runApp(User());
 }
 

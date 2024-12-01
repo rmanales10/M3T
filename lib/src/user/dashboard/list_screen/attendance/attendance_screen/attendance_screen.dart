@@ -158,7 +158,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             onPressed: () async {
               await _controller.deleteAttendanceRecord(
                   attendanceId, isSubmitted);
-              Get.back();
+              Get.back(closeOverlays: true);
               Get.snackbar('Success', 'Attendance deleted successfully.');
             },
             child: const Text('Yes'),

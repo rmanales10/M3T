@@ -1,35 +1,25 @@
+import 'package:app_attend/src/admin/dashboard/screens/subjects/subject_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:app_attend/src/admin/firebase/firestore.dart';
-
 class SubjectPage extends StatelessWidget {
   SubjectPage({super.key});
+  final _controller = Get.put(SubjectController());
 
-  final Firestore _firestore = Get.put(Firestore());
+  final selectedDepartment = 'BSIT'.obs;
+  final List<String> department = [
+    'BSIT',
+    'BFPT',
+    'BTLED - HE',
+    'BTLED - ICT',
+    'BTLED - IA',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final idNumber = TextEditingController();
-    final fullName = TextEditingController();
-    final section = TextEditingController();
+    final courseCode = TextEditingController();
+    final subjectName = TextEditingController();
     final formkey = GlobalKey<FormState>();
-    _firestore.getAllStudent();
-
-    addStudent() {
-      if (formkey.currentState?.validate() == true) {
-        _firestore.addStudent(
-            fullname: fullName.text,
-            idnumber: idNumber.text,
-            section: section.text);
-        _firestore.getAllStudent();
-        Get.back();
-        // Get.snackbar('Success', 'Student added successfully');
-        fullName.clear();
-        idNumber.clear();
-        section.clear();
-      }
-    }
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -78,7 +68,7 @@ class SubjectPage extends StatelessWidget {
                             Get.dialog(AlertDialog(
                               title: Text('Add Subjects'),
                               content: SizedBox(
-                                height: 230,
+                                height: 250,
                                 width: 300,
                                 child: Form(
                                   key: formkey,
@@ -88,26 +78,53 @@ class SubjectPage extends StatelessWidget {
                                       Align(
                                           alignment:
                                               AlignmentDirectional.topStart,
-                                          child: Text('Name of Student')),
+                                          child: Text('Course Code')),
                                       inputStudentField(
-                                          'Ex: Mercedes, Maria P.',
-                                          fullName,
-                                          fullNameValidator),
+                                        'ex: IT-112',
+                                        courseCode,
+                                      ),
                                       SizedBox(height: 10),
                                       Align(
                                           alignment:
                                               AlignmentDirectional.topStart,
-                                          child: Text('Course & Year')),
-                                      inputStudentField('Ex: BSIT - 2E',
-                                          section, courseValidator),
+                                          child: Text('Subject Name')),
+                                      inputStudentField(
+                                        'ex: Mobile Programming',
+                                        subjectName,
+                                      ),
                                       SizedBox(height: 10),
+                                      Align(
+                                          alignment:
+                                              AlignmentDirectional.topStart,
+                                          child: Text('Department')),
+                                      SizedBox(
+                                        width: 300,
+                                        child: _buildDropdownSection(
+                                          selectedValue: selectedDepartment,
+                                          options: department,
+                                          onChanged: (newValue) {
+                                            selectedDepartment.value =
+                                                newValue!;
+                                          },
+                                        ),
+                                      )
                                     ],
                                   ),
                                 ),
                               ),
                               actions: [
                                 ElevatedButton(
-                                    onPressed: () => addStudent(),
+                                    onPressed: () async {
+                                      await _controller.addSubject(
+                                          courseCode: courseCode.text,
+                                          subjectName: subjectName.text,
+                                          department: selectedDepartment.value);
+                                      Get.back();
+                                      Get.snackbar('Success',
+                                          'Subject Added Successfully!');
+                                      courseCode.clear();
+                                      subjectName.clear();
+                                    },
                                     child: Text('Submit')),
                                 ElevatedButton(
                                     onPressed: () {
@@ -150,41 +167,27 @@ class SubjectPage extends StatelessWidget {
                   ],
                 ),
                 child: Obx(() {
-                  // Display a loading indicator while fetching
-                  if (_firestore.studentData.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-
-                  // Build the DataTable rows dynamically
+                  _controller.fetchSubject();
                   return DataTable(
                     columns: [
+                      DataColumn(label: Text('No.')),
                       DataColumn(label: Text('Code')),
                       DataColumn(label: Text('Subject Name')),
                       DataColumn(label: Text('Department')),
-                      DataColumn(label: Text('Teacher')),
-                      DataColumn(label: Text('Students')),
                       DataColumn(label: Text('Action')),
                     ],
-                    rows: _firestore.studentData.asMap().entries.map((entry) {
+                    rows: _controller.subjects.asMap().entries.map((entry) {
                       int index = entry.key + 1;
-                      Map<String, dynamic> user = entry.value;
-
+                      Map<String, dynamic> subj = entry.value;
                       return DataRow(cells: [
-                        DataCell(Text(index.toString())), // Row number
-                        DataCell(Text(user['fullname'] ?? 'N/A')),
-                        DataCell(Text(user['fullname'] ?? 'N/A')),
-                        DataCell(Text(user['fullname'] ?? 'N/A')),
-                        DataCell(Text(user['section'] ?? 'N/A')),
+                        DataCell(Text('$index')), // Row number
+                        DataCell(Text(subj['course_code'])), // Row number
+                        DataCell(Text(subj['subject_name'])), // Row number
+                        DataCell(Text(subj['department'])), // Row number
+
                         DataCell(Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            IconButton(
-                                onPressed: () {}, icon: Icon(Icons.edit)),
                             IconButton(
                               onPressed: () {
                                 Get.dialog(AlertDialog(
@@ -193,12 +196,12 @@ class SubjectPage extends StatelessWidget {
                                       'Are you sure you want to delete this?'),
                                   actions: [
                                     ElevatedButton(
-                                      onPressed: () {
-                                        _firestore.deleteStudent(user['id']);
+                                      onPressed: () async {
+                                        await _controller.deleteSubject(
+                                            id: subj['id']);
                                         Get.back();
                                         Get.snackbar('Success',
                                             'User deleted successfully');
-                                        _firestore.getAllStudent();
                                       },
                                       child: Text('Yes'),
                                     ),
@@ -212,23 +215,13 @@ class SubjectPage extends StatelessWidget {
                               icon: Icon(Icons.delete),
                               color: const Color.fromARGB(255, 56, 131, 243),
                             ),
-                            SizedBox(width: 10),
-                            IconButton(
-                              onPressed: () {
-                                // Implement the edit functionality here
-                                Get.snackbar('Info',
-                                    'Edit functionality not yet implemented.');
-                              },
-                              icon: Icon(Icons.edit_document),
-                              color: const Color.fromARGB(255, 56, 131, 243),
-                            ),
                           ],
                         )),
                       ]);
                     }).toList(),
                   );
                 }),
-              ),
+              )
             ],
           ),
         ),
@@ -236,10 +229,9 @@ class SubjectPage extends StatelessWidget {
     );
   }
 
-  TextFormField inputStudentField(String label,
-      TextEditingController controller, FormFieldValidator<String> validator) {
+  TextFormField inputStudentField(
+      String label, TextEditingController controller) {
     return TextFormField(
-      validator: validator,
       controller: controller,
       decoration: InputDecoration(
         hintText: label,
@@ -247,35 +239,41 @@ class SubjectPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  String? fullNameValidator(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Please enter your full name';
-    }
-
-    // Split the input by spaces
-    List<String> nameParts = value.trim().split(' ');
-
-    // Check if there are at least two words
-    if (nameParts.length < 2) {
-      return 'Please enter both first and last names';
-    }
-
-    // Check if each word starts with a capital letter (optional)
-    for (String part in nameParts) {
-      if (part.isEmpty || part[0] != part[0].toUpperCase()) {
-        return 'Each name should start with a capital letter';
-      }
-    }
-
-    return null; // Validation passed
-  }
-
-  String? courseValidator(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Please enter course & year';
-    }
-
-    return null; // Validation passed
-  }
+Widget _buildDropdownSection({
+  required RxString selectedValue,
+  required List<String> options,
+  required ValueChanged<String?> onChanged,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Obx(
+          () => DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedValue.value,
+              icon: const Icon(Icons.arrow_drop_down),
+              isExpanded: true,
+              style: const TextStyle(fontSize: 16, color: Colors.black),
+              dropdownColor: Colors.grey[300],
+              items: options.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
 }

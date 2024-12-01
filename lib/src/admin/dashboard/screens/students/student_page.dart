@@ -3,23 +3,39 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 // ignore: must_be_immutable
-class StudentPage extends StatelessWidget {
+class StudentPage extends StatefulWidget {
   StudentPage({super.key});
+
+  @override
+  State<StudentPage> createState() => _StudentPageState();
+}
+
+class _StudentPageState extends State<StudentPage> {
   final _controller = Get.put(StudentController());
+
   RxBool isAddStudent = false.obs;
+
   RxBool isEditStudent = false.obs;
+
   final studentId = ''.obs;
+
   final name = TextEditingController();
+
   final section = TextEditingController();
+
   final formkey = GlobalKey<FormState>();
+
   final selectedYear = '1st Year'.obs;
+
   final List<String> year = [
     '1st Year',
     '2nd Year',
     '3rd Year',
     '4th Year',
   ];
+
   final selectedDepartment = 'BSIT'.obs;
+
   final List<String> department = [
     'BSIT',
     'BFPT',
@@ -27,7 +43,9 @@ class StudentPage extends StatelessWidget {
     'BTLED - ICT',
     'BTLED - IA',
   ];
+
   final selectedSection = 'Section A'.obs;
+
   final List<String> _section = [
     'Section A',
     'Section B',
@@ -36,14 +54,20 @@ class StudentPage extends StatelessWidget {
     'Section E',
     'Section F',
   ];
+
   final selectedsubject = 'Elective'.obs;
+
   final RxList<String> subject = [
     'Elective',
     'Mobile Programming',
     'Database',
   ].obs;
 
+  RxList<String> subs = <String>[].obs;
+  RxString subSel = ''.obs;
+
   final RxList dataS = [].obs;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -278,8 +302,20 @@ class StudentPage extends StatelessWidget {
                     child: _buildDropdownSection(
                       selectedValue: selectedDepartment,
                       options: department,
-                      onChanged: (newValue) {
+                      onChanged: (newValue) async {
+                        subs.clear();
                         selectedDepartment.value = newValue!;
+                        await _controller.fetchSubject(
+                            department: selectedDepartment.value);
+
+                        for (var s in _controller.subjects) {
+                          if (subs.contains(s['course_code'])) {
+                            break;
+                          }
+                          subs.addNonNull(
+                              '${s['course_code']} ${s['subject_name']}');
+                        }
+                        subSel.value = subs.first;
                       },
                     ),
                   )
@@ -310,10 +346,10 @@ class StudentPage extends StatelessWidget {
             children: [
               _buildLabel('Subjects'),
               _buildDropdownSection(
-                selectedValue: selectedsubject,
-                options: subject,
+                selectedValue: subSel,
+                options: subs,
                 onChanged: (newValue) {
-                  selectedsubject.value = newValue!;
+                  subSel.value = newValue!;
 
                   if (!dataS.contains(newValue)) {
                     dataS.add(newValue);
@@ -421,8 +457,22 @@ class StudentPage extends StatelessWidget {
                     child: _buildDropdownSection(
                       selectedValue: selectedDepartment,
                       options: department,
-                      onChanged: (newValue) {
+                      onChanged: (newValue) async {
+                        subs.clear();
                         selectedDepartment.value = newValue!;
+                        await _controller.fetchSubject(
+                            department: selectedDepartment.value);
+                        for (var s in _controller.subjects) {
+                          if (subs.contains(s['course_code'])) {
+                            break;
+                          }
+                          subs.addNonNull(
+                              '${s['course_code']} ${s['subject_name']}');
+                          // ignore: collection_methods_unrelated_type
+                        }
+
+                        subSel.value = subs.first;
+                        ;
                       },
                     ),
                   )
@@ -453,10 +503,10 @@ class StudentPage extends StatelessWidget {
             children: [
               _buildLabel('Subjects'),
               _buildDropdownSection(
-                selectedValue: selectedsubject,
-                options: subject,
+                selectedValue: subSel,
+                options: subs,
                 onChanged: (newValue) {
-                  selectedsubject.value = newValue!;
+                  subSel.value = newValue!;
 
                   if (!dataS.contains(newValue)) {
                     dataS.add(newValue);

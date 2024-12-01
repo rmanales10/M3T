@@ -32,8 +32,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
         return TeacherPage();
       case 'Students':
         return StudentPage();
-      case 'Sections':
-        return SectionPage();
+      // case 'Sections':
+      //   return SectionPage();
       case 'Subjects':
         return SubjectPage();
       default:
@@ -145,12 +145,12 @@ class Sidebar extends StatelessWidget {
                     isSelected: currentPage == 'Students',
                     onTap: () => onPageSelected('Students'),
                   ),
-                  _buildMenuItem(
-                    Icons.book,
-                    "Sections",
-                    isSelected: currentPage == 'Sections',
-                    onTap: () => onPageSelected('Sections'),
-                  ),
+                  // _buildMenuItem(
+                  //   Icons.book,
+                  //   "Sections",
+                  //   isSelected: currentPage == 'Sections',
+                  //   onTap: () => onPageSelected('Sections'),
+                  // ),
                   _buildMenuItem(
                     Icons.analytics,
                     'Subjects',

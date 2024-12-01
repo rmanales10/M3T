@@ -40,4 +40,35 @@ class CreateController extends GetxController {
       log('error $e');
     }
   }
+
+  RxList<Map<String, dynamic>> subjects = <Map<String, dynamic>>[].obs;
+  Future<void> fetchSubject({required var department}) async {
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('subjects')
+        .where('department', isEqualTo: department)
+        .get();
+    subjects.value = querySnapshot.docs
+        .map((doc) => {
+              'id': doc['id'],
+              'course_code': doc['course_code'],
+              'department': doc['department'],
+              'subject_name': doc['subject_name'],
+            })
+        .toList();
+  }
+
+  RxList<Map<String, dynamic>> sections = <Map<String, dynamic>>[].obs;
+  Future<void> fetchSection({required var subject}) async {
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('students')
+        .where('subject', arrayContains: subject)
+        .get();
+    sections.value = querySnapshot.docs
+        .map((doc) => {
+              'section_year_block': doc['section_year_block'],
+            })
+        .toList();
+    log('$subject');
+    log('$sections');
+  }
 }

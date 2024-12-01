@@ -19,18 +19,19 @@ class _CreateAttendanceState extends State<CreateAttendance> {
   final _controller = Get.put(CreateController());
 
   // Dropdown reactive variables
-  final selectedSection = 'BSIT 3A'.obs;
-  final List<String> sections = [
-    'BSIT 3A',
-    'BSIT 3B',
-    'BSIT 3C',
-    'BSIT 3D',
-    'BSIT 3E',
-    'BSIT 3F'
-  ];
 
-  final selectedSubject = 'Elective'.obs;
-  final List<String> subjects = ['Elective', 'Mobile Programming', 'Database'];
+  final selectedDepartment = 'BSIT'.obs;
+  final List<String> department = [
+    'BSIT',
+    'BFPT',
+    'BTLED - HE',
+    'BTLED - ICT',
+    'BTLED - IA',
+  ];
+  final RxString selectedSection = ''.obs;
+  final RxList<String> sections = <String>[].obs;
+  final RxString selectedSubject = ''.obs;
+  final RxList<String> subjects = <String>[].obs;
 
   @override
   Widget build(BuildContext context) {
@@ -47,12 +48,44 @@ class _CreateAttendanceState extends State<CreateAttendance> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _buildDropdownSection(
+                label: 'Select Department:',
+                selectedValue: selectedDepartment,
+                options: department,
+                onChanged: (newValue) async {
+                  subjects.clear();
+                  selectedDepartment.value = newValue!;
+                  await _controller.fetchSubject(
+                      department: selectedDepartment.value);
+                  for (var s in _controller.subjects) {
+                    if (subjects.contains(s['course_code'])) {
+                      break;
+                    }
+                    subjects
+                        .addNonNull('${s['course_code']} ${s['subject_name']}');
+                  }
+                  selectedSubject.value = subjects.first;
+                },
+              ),
               const SizedBox(height: 20),
               _buildDropdownSection(
                 label: 'Select Subject:',
                 selectedValue: selectedSubject,
                 options: subjects,
-                onChanged: (newValue) => selectedSubject.value = newValue!,
+                onChanged: (newValue) async {
+                  sections.clear();
+                  selectedSubject.value = newValue!;
+                  await _controller.fetchSection(
+                      subject: selectedSubject.value);
+
+                  for (var s in _controller.sections) {
+                    if (sections.contains(s['section_year_block'])) {
+                      break;
+                    }
+                    sections.addNonNull('${s['section_year_block']}');
+                  }
+                  selectedSection.value = sections.first;
+                },
               ),
               const SizedBox(height: 20),
               _buildDropdownSection(

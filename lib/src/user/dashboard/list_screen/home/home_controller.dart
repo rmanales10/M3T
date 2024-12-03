@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -9,7 +11,8 @@ class HomeController extends GetxController {
 
   RxList<Map<String, dynamic>> allRecord = <Map<String, dynamic>>[].obs;
   Future<void> fetchAllRecord() async {
-    QuerySnapshot querySnapshot = await _firestore.collection('record').get();
+    QuerySnapshot querySnapshot =
+        await _firestore.collection('record').where(currentUser!.uid).get();
     allRecord.value = querySnapshot.docs
         .map((doc) => {
               'section': doc['section'],
@@ -18,5 +21,40 @@ class HomeController extends GetxController {
               'student_record': doc['student_record'],
             })
         .toList();
+    log('$allRecord');
+  }
+
+  RxList<Map<String, dynamic>> allAttendance = <Map<String, dynamic>>[].obs;
+  Future<void> fetchAllAttendance() async {
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('users')
+        .doc(currentUser!.uid)
+        .collection('attendance')
+        .get();
+    allRecord.value = querySnapshot.docs
+        .map((doc) => {
+              'date': doc['date'],
+              'id': doc['id'],
+              'is_submitted': doc['is_submitted'],
+              'section': doc['section'],
+              'subject': doc['subject'],
+              'time': doc['time'],
+            })
+        .toList();
+  }
+
+  RxList<Map<String, dynamic>> subjectOnly = <Map<String, dynamic>>[].obs;
+  Future<void> fetchSubjectOnly({required var subject}) async {
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('record')
+        .where('subject', isEqualTo: subject)
+        .where('user_id', isEqualTo: currentUser!.uid)
+        .get();
+    subjectOnly.value = querySnapshot.docs
+        .map((doc) => {
+              'student_record': doc['student_record'],
+            })
+        .toList();
+    log('$subjectOnly');
   }
 }

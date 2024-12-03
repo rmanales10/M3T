@@ -50,7 +50,7 @@ class _ListOfStudentsState extends State<ListOfStudents> {
             children: [
               _buildInfoContainer('Subject:', widget.subject),
               _buildInfoContainer('Section:', widget.section),
-              // _buildInfoContainer('Date:', widget.date),
+              _buildInfoContainer('Date:', widget.date),
             ],
           ),
           SizedBox(height: 16),

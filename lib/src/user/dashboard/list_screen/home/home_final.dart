@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:app_attend/src/user/api_services/auth_service.dart';
 import 'package:app_attend/src/user/api_services/firestore_service.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/home/home_controller.dart';
 import 'package:app_attend/src/widgets/color_constant.dart';
 import 'package:app_attend/src/widgets/status_widget.dart';
 import 'package:app_attend/src/widgets/time_clock.dart';
@@ -24,10 +25,14 @@ class _HomeFinalState extends State<HomeFinal> {
   late TimeController timeController;
   late AuthService authService;
   late FirestoreService firestoreService;
-  RxString selectedSubject = ''.obs;
-  RxList<String> subjectNames = <String>[].obs;
+  late HomeController _controller;
+  final selectedSubject = RxnString();
+  final subjectNames = RxList<String>();
   Rx<DateTime> date = DateTime.now().obs;
   RxString time = "".obs;
+  RxInt totalPresent = 0.obs;
+  RxInt totalAbsent = 0.obs;
+  RxInt totalStudent = 0.obs;
 
   @override
   void initState() {
@@ -35,18 +40,12 @@ class _HomeFinalState extends State<HomeFinal> {
     timeController = Get.put(TimeController());
     authService = Get.put(AuthService());
     firestoreService = Get.put(FirestoreService());
+    _controller = Get.put(HomeController());
 
-    if (authService.currentUser != null) {
-      firestoreService.fetchUserData(authService.currentUser!.uid);
-      firestoreService
-          .fetchSectionsAndSubjects(userId: authService.currentUser!.uid)
-          .then((_) {
-        subjectNames.value = ['Electibe'];
-        if (subjectNames.isNotEmpty) {
-          selectedSubject.value = subjectNames[0];
-          _updateDateTimeFromSelection(subjectNames[0]);
-        }
-      });
+    _controller.fetchAllRecord();
+    for (var attend in _controller.allRecord) {
+      if (subjectNames.contains(attend['subject'])) break;
+      subjectNames.addNonNull(attend['subject'].toString());
     }
   }
 
@@ -150,12 +149,28 @@ class _HomeFinalState extends State<HomeFinal> {
             value: selectedSubject.value,
             icon: const Icon(Icons.arrow_drop_down),
             elevation: 16,
+            hint: Text('Select an option'),
             underline: const SizedBox(),
             style: const TextStyle(color: Colors.black),
             onChanged: (String? newValue) {
               if (newValue != null) {
+                totalStudent.value = 0;
+                totalPresent.value = 0;
+                totalAbsent.value = 0;
                 selectedSubject.value = newValue;
                 _updateDateTimeFromSelection(newValue);
+                _controller.fetchSubjectOnly(subject: selectedSubject.value);
+                for (var present in _controller.subjectOnly) {
+                  for (var record in present['student_record']) {
+                    if (record['present'] == '✓') {
+                      totalPresent.value++;
+                    }
+                    if (record['present'] == 'X') {
+                      totalAbsent.value++;
+                    }
+                    totalStudent.value++;
+                  }
+                }
               }
             },
             items: subjectNames.map((String value) {
@@ -171,9 +186,9 @@ class _HomeFinalState extends State<HomeFinal> {
 
   Widget _buildInOutStatus() {
     return Obx(() => InOutStatusWidget(
-          inCount: firestoreService.presentCount.value,
-          breakCount: firestoreService.totalCount.value,
-          outCount: firestoreService.absentCount.value,
+          inCount: totalPresent.value,
+          breakCount: totalStudent.value,
+          outCount: totalAbsent.value,
           dateTime:
               '${DateFormat('EEEE, d MMM yyyy').format(date.value)} ${time.value}',
           firstIn: time.value,

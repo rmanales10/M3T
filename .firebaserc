@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "project101-fe735"
-  }
+    "default": "tapattend-59d1e",
+    "tapattend": "tapattend-59d1e"
+  },
+  "targets": {},
+  "etags": {}
 }

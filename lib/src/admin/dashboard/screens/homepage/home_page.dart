@@ -1,5 +1,7 @@
+import 'package:app_attend/src/admin/dashboard/screens/homepage/home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,6 +15,7 @@ class _HomePageState extends State<HomePage> {
   final CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  final _controller = Get.put(HomeController());
 
   // Define holidays and their colors
   final Map<DateTime, Map<String, dynamic>> holidays = {
@@ -29,6 +32,11 @@ class _HomePageState extends State<HomePage> {
       'color': Colors.green,
     },
   };
+  @override
+  void initState() {
+    super.initState();
+    _controller.getTotal();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,37 +57,40 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildCards(
-                      'Teachers',
-                      '50+',
-                      'Track current number of teachers',
-                      const Color.fromARGB(255, 189, 249, 192).withOpacity(.2),
-                      const FaIcon(FontAwesomeIcons.userGroup),
-                    ),
-                    _buildCards(
-                      'Sections',
-                      '50+',
-                      'Track current number of sections',
-                      Colors.red.withOpacity(0.05),
-                      const FaIcon(FontAwesomeIcons.gripHorizontal),
-                    ),
-                    _buildCards(
-                      'Subjects',
-                      '50+',
-                      'Track current number of subjects',
-                      Colors.blue.withOpacity(.05),
-                      const FaIcon(FontAwesomeIcons.bookOpen),
-                    ),
-                    _buildCards(
-                      'Students',
-                      '50+',
-                      'Track current number of students',
-                      Colors.grey.withOpacity(.05),
-                      const FaIcon(FontAwesomeIcons.graduationCap),
-                    ),
-                  ],
+                child: Obx(
+                  () => Row(
+                    children: [
+                      _buildCards(
+                        'Teachers',
+                        '${_controller.totalTeacher}',
+                        'Track current number of teachers',
+                        const Color.fromARGB(255, 189, 249, 192)
+                            .withOpacity(.2),
+                        const FaIcon(FontAwesomeIcons.userGroup),
+                      ),
+                      _buildCards(
+                        'Sections',
+                        '${_controller.totalSection}',
+                        'Track current number of sections',
+                        Colors.red.withOpacity(0.05),
+                        const FaIcon(FontAwesomeIcons.gripHorizontal),
+                      ),
+                      _buildCards(
+                        'Subjects',
+                        '${_controller.totalSubject}',
+                        'Track current number of subjects',
+                        Colors.blue.withOpacity(.05),
+                        const FaIcon(FontAwesomeIcons.bookOpen),
+                      ),
+                      _buildCards(
+                        'Students',
+                        '${_controller.totalStudent}',
+                        'Track current number of students',
+                        Colors.grey.withOpacity(.05),
+                        const FaIcon(FontAwesomeIcons.graduationCap),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 40),
@@ -116,8 +127,8 @@ class _HomePageState extends State<HomePage> {
                             _focusedDay = focusedDay;
                           });
                         },
-                        holidayPredicate: (day) =>
-                            holidays.keys.any((holiday) => isSameDay(day, holiday)),
+                        holidayPredicate: (day) => holidays.keys
+                            .any((holiday) => isSameDay(day, holiday)),
                         calendarStyle: CalendarStyle(
                           todayDecoration: BoxDecoration(
                             color: Colors.orange,
@@ -128,8 +139,9 @@ class _HomePageState extends State<HomePage> {
                             shape: BoxShape.circle,
                           ),
                         ),
-                        eventLoader: (day) =>
-                            holidays.containsKey(day) ? [holidays[day]!['name']] : [],
+                        eventLoader: (day) => holidays.containsKey(day)
+                            ? [holidays[day]!['name']]
+                            : [],
                       ),
                     ),
                   ),
@@ -168,7 +180,8 @@ class _HomePageState extends State<HomePage> {
                               child: ListView.builder(
                                 itemCount: holidays.length,
                                 itemBuilder: (context, index) {
-                                  final holiday = holidays.entries.toList()[index];
+                                  final holiday =
+                                      holidays.entries.toList()[index];
                                   final date = holiday.key;
                                   final details = holiday.value;
 
@@ -243,9 +256,8 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 5),
           Align(alignment: Alignment.topLeft, child: Text(label))
-        ],  
+        ],
       ),
     );
   }
 }
-

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,8 +12,10 @@ class HomeController extends GetxController {
 
   RxList<Map<String, dynamic>> allRecord = <Map<String, dynamic>>[].obs;
   Future<void> fetchAllRecord() async {
-    QuerySnapshot querySnapshot =
-        await _firestore.collection('record').where(currentUser!.uid).get();
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('record')
+        .where('user_id', isEqualTo: currentUser!.uid)
+        .get();
     allRecord.value = querySnapshot.docs
         .map((doc) => {
               'section': doc['section'],
@@ -56,5 +59,19 @@ class HomeController extends GetxController {
             })
         .toList();
     log('$subjectOnly');
+  }
+
+  RxList<Map<String, dynamic>> holidays = <Map<String, dynamic>>[].obs;
+
+  Future<void> fetchHolidays() async {
+    QuerySnapshot querySnapshot = await _firestore.collection('holidays').get();
+    holidays.value = querySnapshot.docs.map((doc) {
+      Timestamp timestamp = doc['date'];
+      DateTime date = timestamp.toDate();
+      return {
+        'date': date,
+        'notes': doc['name'],
+      };
+    }).toList();
   }
 }

@@ -1,3 +1,4 @@
+import 'package:app_attend/src/admin/dashboard/screens/activity_log/activity_log.dart';
 import 'package:app_attend/src/admin/dashboard/screens/homepage/home_page.dart';
 import 'package:app_attend/src/admin/dashboard/screens/sections/section_page.dart';
 import 'package:app_attend/src/admin/dashboard/screens/students/student_page.dart';
@@ -36,6 +37,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
       //   return SectionPage();
       case 'Subjects':
         return SubjectPage();
+      case 'Activity Log':
+        return ActivityLogPage();
       default:
         return Center(child: Text('Main Content Area'));
     }
@@ -156,6 +159,13 @@ class Sidebar extends StatelessWidget {
                     'Subjects',
                     isSelected: currentPage == 'Subjects',
                     onTap: () => onPageSelected('Subjects'),
+                  ),
+
+                  _buildMenuItem(
+                    Icons.event_note_outlined,
+                    'Activity Log',
+                    isSelected: currentPage == 'Activity Log',
+                    onTap: () => onPageSelected('Activity Log'),
                   ),
                 ],
               ),

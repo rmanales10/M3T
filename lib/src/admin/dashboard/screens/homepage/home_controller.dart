@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
@@ -44,4 +45,49 @@ class HomeController extends GetxController {
       log('Error $e');
     }
   }
+
+  Future<void> addHolidayToFirebase(
+      {required DateTime date,
+      required String name,
+      required int color}) async {
+    try {
+      await _firestore.collection('holidays').add({
+        'date': Timestamp.fromDate(date),
+        'name': name,
+        'color': color,
+      });
+      log('Holiday added successfully.');
+    } catch (e) {
+      log('Error adding holiday: $e');
+    }
+  }
+
+  Future<void> deleteHolidayFromFirebase(String docId) async {
+    try {
+      await _firestore.collection('holidays').doc(docId).delete();
+      log('Holiday deleted successfully.');
+    } catch (e) {
+      log('Error deleting holiday: $e');
+    }
+  }
+
+  Future<Map<String, Map<String, dynamic>>> getHolidaysFromFirebase() async {
+    Map<String, Map<String, dynamic>> holidayMap = {};
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('holidays').get();
+      for (var doc in snapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        DateTime date = (data['date'] as Timestamp).toDate();
+        holidayMap[doc.id] = {
+          'date': date,
+          'name': data['name'],
+          'color': Color(data['color']),
+        };
+      }
+    } catch (e) {
+      log('Error fetching holidays: $e');
+    }
+    return holidayMap;
+  }
+  
 }

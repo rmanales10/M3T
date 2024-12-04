@@ -50,35 +50,6 @@ class TeacherPage extends StatelessWidget {
                     'Monitor teachers and schedules',
                     style: TextStyle(color: Colors.grey[600], fontSize: 18),
                   ),
-                  Container(
-                    width: 200,
-                    height: 50,
-                    decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 56, 131, 243),
-                        borderRadius: BorderRadius.circular(10)),
-                    child: TextButton(
-                        onPressed: () {
-                          isTap.value = !isTap.value;
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.person_add_alt,
-                              color: Colors.white,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Obx(
-                              () => Text(
-                                isTap.value ? 'Add New Teacher' : 'dsad',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            )
-                          ],
-                        )),
-                  ),
                 ],
               ),
               Center(
@@ -112,8 +83,8 @@ class TeacherPage extends StatelessWidget {
                       columns: [
                         DataColumn(label: Text('No.')),
                         DataColumn(label: Text('Name')),
-                        DataColumn(label: Text('Subjects')),
-                        DataColumn(label: Text('Sections')),
+                        DataColumn(label: Text('Phone Number')),
+                        DataColumn(label: Text('Created at')),
                         DataColumn(label: Text('Actions')),
                       ],
                       rows: _firestore.allUsers.asMap().entries.map((entry) {
@@ -161,15 +132,6 @@ class TeacherPage extends StatelessWidget {
                                 color: const Color.fromARGB(255, 56, 131, 243),
                               ),
                               SizedBox(width: 10),
-                              IconButton(
-                                onPressed: () {
-                                  // Implement the edit functionality here
-                                  Get.snackbar('Info',
-                                      'Edit functionality not yet implemented.');
-                                },
-                                icon: Icon(Icons.edit_document),
-                                color: const Color.fromARGB(255, 56, 131, 243),
-                              ),
                             ],
                           )),
                         ]);

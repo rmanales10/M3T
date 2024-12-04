@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:app_attend/src/user/api_services/auth_service.dart';
 import 'package:app_attend/src/user/api_services/firestore_service.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/home/home_controller.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/profile/profile_controller.dart';
 import 'package:app_attend/src/widgets/color_constant.dart';
 import 'package:app_attend/src/widgets/status_widget.dart';
 import 'package:app_attend/src/widgets/time_clock.dart';
@@ -10,6 +12,7 @@ import 'package:app_attend/src/widgets/time_controller.dart';
 import 'package:app_attend/src/widgets/upcoming_reminder.dart';
 import 'package:app_attend/src/widgets/user_profile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -26,6 +29,7 @@ class _HomeFinalState extends State<HomeFinal> {
   late AuthService authService;
   late FirestoreService firestoreService;
   late HomeController _controller;
+  late ProfileController _profileController;
   final selectedSubject = RxnString();
   final subjectNames = RxList<String>();
   Rx<DateTime> date = DateTime.now().obs;
@@ -33,6 +37,7 @@ class _HomeFinalState extends State<HomeFinal> {
   RxInt totalPresent = 0.obs;
   RxInt totalAbsent = 0.obs;
   RxInt totalStudent = 0.obs;
+  late Uint8List _imageBytes;
 
   @override
   void initState() {
@@ -41,12 +46,17 @@ class _HomeFinalState extends State<HomeFinal> {
     authService = Get.put(AuthService());
     firestoreService = Get.put(FirestoreService());
     _controller = Get.put(HomeController());
+    _profileController = Get.put(ProfileController());
+    setState(() {
+      _imageBytes = base64Decode(_profileController.userInfo['base64image']);
+    });
 
     _controller.fetchAllRecord();
     for (var attend in _controller.allRecord) {
       if (subjectNames.contains(attend['subject'])) break;
       subjectNames.addNonNull(attend['subject'].toString());
     }
+    _controller.fetchHolidays();
   }
 
   String _formatSubject(Map<String, dynamic> record) {
@@ -109,18 +119,20 @@ class _HomeFinalState extends State<HomeFinal> {
   }
 
   Widget _buildUserProfile() {
-    return Obx(() => Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: blue,
-          ),
-          child: UserProfileWidget(
-            name: firestoreService.userData['fullname'] ?? 'No Name',
-            email: 'Instructor',
-            profileImageUrl: 'assets/logo.png',
-          ),
-        ));
+    return Obx(() {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: blue,
+        ),
+        child: UserProfileWidget(
+          name: firestoreService.userData['fullname'] ?? 'No Name',
+          email: 'Instructor',
+          profileImageUrl: MemoryImage(_imageBytes),
+        ),
+      );
+    });
   }
 
   Widget _buildTimeClock() {
@@ -197,19 +209,39 @@ class _HomeFinalState extends State<HomeFinal> {
   }
 
   Widget _buildUpcomingReminders() {
-    return UpcomingRemindersWidget(
-      reminders: [
-        Reminder(
-          month: "May",
-          day: 27,
-          notes: ["Pay period cycle ends in 2 days"],
-        ),
-        Reminder(
-          month: "May",
-          day: 28,
-          notes: ["Labour Day", "Timesheet approvals due date"],
-        ),
-      ],
-    );
+    return Obx(() {
+      List<Reminder> reminders =
+          mapHolidaysToReminders(_controller.holidays.value);
+      return UpcomingRemindersWidget(reminders: reminders);
+    });
+  }
+
+  List<Reminder> mapHolidaysToReminders(List<Map<String, dynamic>> holidays) {
+    return holidays.map((holiday) {
+      DateTime date = holiday['date'];
+      return Reminder(
+        month: _getMonthName(date.month),
+        day: date.day,
+        notes: [holiday['notes']],
+      );
+    }).toList();
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ];
+    return months[month - 1];
   }
 }

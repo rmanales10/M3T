@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class UserProfileWidget extends StatelessWidget {
   final String name;
   final String email;
-  final String profileImageUrl;
+  final ImageProvider profileImageUrl;
 
   const UserProfileWidget({
     super.key,
@@ -19,7 +19,7 @@ class UserProfileWidget extends StatelessWidget {
         // Profile Image
         CircleAvatar(
           radius: 24, // Adjust size as needed
-          backgroundImage: AssetImage(profileImageUrl),
+          backgroundImage: profileImageUrl,
         ),
         SizedBox(width: 12), // Space between image and text
         // Name and Email

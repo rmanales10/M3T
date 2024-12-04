@@ -19,23 +19,152 @@ class _HomePageState extends State<HomePage> {
 
   // Define holidays and their colors
   final Map<DateTime, Map<String, dynamic>> holidays = {
-    DateTime(2024, 12, 25): {
-      'name': 'Christmas Day',
-      'color': Colors.red,
-    },
-    DateTime(2024, 11, 30): {
-      'name': 'Bonifacio Day',
-      'color': Colors.blue,
-    },
-    DateTime(2025, 1, 1): {
-      'name': 'New Year\'s Day',
-      'color': Colors.green,
-    },
+    // DateTime(2024, 12, 25): {
+    //   'name': 'Christmas Day',
+    //   'color': Colors.red,
+    // },
+    // DateTime(2024, 11, 30): {
+    //   'name': 'Bonifacio Day',
+    //   'color': Colors.blue,
+    // },
+    // DateTime(2025, 1, 1): {
+    //   'name': 'New Year\'s Day',
+    //   'color': Colors.green,
+    // },
   };
+
   @override
   void initState() {
     super.initState();
     _controller.getTotal();
+    _loadHolidays();
+  }
+
+  void _addHoliday(DateTime date) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String holidayName = "";
+        Color holidayColor = Colors.red;
+        return AlertDialog(
+          title: const Text('Add Holiday'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(labelText: 'Holiday Name'),
+                onChanged: (value) {
+                  holidayName = value;
+                },
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Holiday Color:'),
+                  DropdownButton<Color>(
+                    value: holidayColor,
+                    items: [
+                      DropdownMenuItem(
+                        value: Colors.red,
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          color: Colors.red,
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: Colors.blue,
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: Colors.green,
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          holidayColor = value;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final colorValue = holidayColor.value;
+                await _controller.addHolidayToFirebase(
+                  date: date,
+                  name: holidayName,
+                  color: colorValue,
+                );
+                await _loadHolidays();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _loadHolidays() async {
+    Map<String, Map<String, dynamic>> loadedHolidays =
+        await _controller.getHolidaysFromFirebase();
+    setState(() {
+      holidays.clear();
+      holidays.addAll(loadedHolidays.map((key, value) {
+        return MapEntry(value['date'], value);
+      }));
+    });
+  }
+
+  void _deleteHoliday(String docId, DateTime date) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Holiday'),
+          content: const Text('Are you sure you want to delete this holiday?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await _controller.deleteHolidayFromFirebase(docId);
+                await _loadHolidays();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -114,34 +243,47 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ],
                       ),
-                      child: TableCalendar(
-                        focusedDay: _focusedDay,
-                        firstDay: DateTime(2000),
-                        lastDay: DateTime(2100),
-                        selectedDayPredicate: (day) =>
-                            isSameDay(_selectedDay, day),
-                        calendarFormat: _calendarFormat,
-                        onDaySelected: (selectedDay, focusedDay) {
-                          setState(() {
-                            _selectedDay = selectedDay;
-                            _focusedDay = focusedDay;
-                          });
-                        },
-                        holidayPredicate: (day) => holidays.keys
-                            .any((holiday) => isSameDay(day, holiday)),
-                        calendarStyle: CalendarStyle(
-                          todayDecoration: BoxDecoration(
-                            color: Colors.orange,
-                            shape: BoxShape.circle,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: TableCalendar(
+                              focusedDay: _focusedDay,
+                              firstDay: DateTime(2000),
+                              lastDay: DateTime(2100),
+                              selectedDayPredicate: (day) =>
+                                  isSameDay(_selectedDay, day),
+                              calendarFormat: _calendarFormat,
+                              onDaySelected: (selectedDay, focusedDay) {
+                                setState(() {
+                                  _selectedDay = selectedDay;
+                                  _focusedDay = focusedDay;
+                                });
+                              },
+                              holidayPredicate: (day) => holidays.keys
+                                  .any((holiday) => isSameDay(day, holiday)),
+                              calendarStyle: CalendarStyle(
+                                todayDecoration: BoxDecoration(
+                                  color: Colors.orange,
+                                  shape: BoxShape.circle,
+                                ),
+                                 holidayDecoration: BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              eventLoader: (day) => holidays.containsKey(day)
+                                  ? [holidays[day]!['name']]
+                                  : [],
+                            ),
                           ),
-                          holidayDecoration: BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
+                          const SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: _selectedDay == null
+                                ? null
+                                : () => _addHoliday(_selectedDay!),
+                            child: const Text('Add Holiday'),
                           ),
-                        ),
-                        eventLoader: (day) => holidays.containsKey(day)
-                            ? [holidays[day]!['name']]
-                            : [],
+                        ],
                       ),
                     ),
                   ),
@@ -180,10 +322,10 @@ class _HomePageState extends State<HomePage> {
                               child: ListView.builder(
                                 itemCount: holidays.length,
                                 itemBuilder: (context, index) {
-                                  final holiday =
+                                  final entry =
                                       holidays.entries.toList()[index];
-                                  final date = holiday.key;
-                                  final details = holiday.value;
+                                  final date = entry.key;
+                                  final details = entry.value;
 
                                   return ListTile(
                                     leading: CircleAvatar(
@@ -196,6 +338,14 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     subtitle: Text(
                                       '${date.month}/${date.day}/${date.year}',
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      onPressed: () {
+                                        _deleteHoliday(
+                                            entry.key.toString(), date);
+                                      },
                                     ),
                                   );
                                 },

@@ -21,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController passwordController = TextEditingController();
   final RxBool isTermsAccepted = false.obs; // RxBool for terms acceptance
   final AuthService _authService = Get.put(AuthService());
+  final isClick = false.obs;
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         passwordController.text,
         phoneController.text,
       );
+      isClick.value = true;
     } else {
       Get.snackbar(
         'Error',
@@ -135,7 +137,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 20),
                   _buildLoginLink(),
-                  myButton('Continue', blue, _registerUser),
+                  Obx(
+                    () => isClick.value
+                        ? myButton('Signing Up...', blue, _registerUser)
+                        : myButton('Sign Up', blue, _registerUser),
+                  ),
                 ],
               ),
             ),

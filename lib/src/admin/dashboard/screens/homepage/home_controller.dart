@@ -1,6 +1,6 @@
 import 'dart:developer';
 import 'dart:ui';
-
+import 'dart:math' as rnd;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 
@@ -10,6 +10,12 @@ class HomeController extends GetxController {
   final totalSubject = 0.obs;
   final totalSection = 0.obs;
   final totalStudent = 0.obs;
+
+  String generateUniqueId() {
+    var random = rnd.Random();
+    int randomNumber = 1000000 + random.nextInt(9000000);
+    return 'holiday#$randomNumber';
+  }
 
   Future<void> getTotal() async {
     try {
@@ -51,7 +57,9 @@ class HomeController extends GetxController {
       required String name,
       required int color}) async {
     try {
-      await _firestore.collection('holidays').add({
+      String genID = generateUniqueId();
+      await _firestore.collection('holidays').doc(genID).set({
+        'id': genID,
         'date': Timestamp.fromDate(date),
         'name': name,
         'color': color,
@@ -89,5 +97,4 @@ class HomeController extends GetxController {
     }
     return holidayMap;
   }
-  
 }

@@ -149,7 +149,7 @@ class _HomePageState extends State<HomePage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.back(closeOverlays: true);
               },
               child: const Text('Cancel'),
             ),
@@ -157,7 +157,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () async {
                 await _controller.deleteHolidayFromFirebase(docId);
                 await _loadHolidays();
-                Navigator.of(context).pop();
+                Get.back(closeOverlays: true);
               },
               child: const Text('Delete'),
             ),
@@ -202,6 +202,7 @@ class _HomePageState extends State<HomePage> {
                         '${_controller.totalSection}',
                         'Track current number of sections',
                         Colors.red.withOpacity(0.05),
+                        // ignore: deprecated_member_use
                         const FaIcon(FontAwesomeIcons.gripHorizontal),
                       ),
                       _buildCards(
@@ -266,7 +267,7 @@ class _HomePageState extends State<HomePage> {
                                   color: Colors.orange,
                                   shape: BoxShape.circle,
                                 ),
-                                 holidayDecoration: BoxDecoration(
+                                holidayDecoration: BoxDecoration(
                                   color: Colors.green,
                                   shape: BoxShape.circle,
                                 ),
@@ -343,8 +344,8 @@ class _HomePageState extends State<HomePage> {
                                       icon: const Icon(Icons.delete,
                                           color: Colors.red),
                                       onPressed: () {
-                                        _deleteHoliday(
-                                            entry.key.toString(), date);
+                                        print(details['id']);
+                                        _deleteHoliday(details['id'], date);
                                       },
                                     ),
                                   );

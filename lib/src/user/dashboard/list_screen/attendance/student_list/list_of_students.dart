@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'package:app_attend/src/user/api_services/document_service.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/attendance/student_list/docx_template.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/attendance/student_list/list_controller.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/profile/profile_controller.dart';
 import 'package:app_attend/src/widgets/color_constant.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,6 +29,7 @@ class ListOfStudents extends StatefulWidget {
 
 class _ListOfStudentsState extends State<ListOfStudents> {
   final _controller = Get.put(ListController());
+  final _profileController = Get.put(ProfileController());
   final documentService = Get.put(DocumentService());
 
   final RxList<Map<String, dynamic>> studentRecord =
@@ -36,6 +39,7 @@ class _ListOfStudentsState extends State<ListOfStudents> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: Text('List of Students'),
@@ -80,10 +84,10 @@ class _ListOfStudentsState extends State<ListOfStudents> {
                         .toList();
 
                 if (widget.isSubmitted) {
-                  return _buildScrollableTable(studentPrintList);
+                  return _buildScrollableTable(studentPrintList, size);
                 }
               }
-              return _buildScrollableTable(studentList);
+              return _buildScrollableTable(studentList, size);
             }),
           ),
           SizedBox(height: 10),
@@ -106,19 +110,22 @@ class _ListOfStudentsState extends State<ListOfStudents> {
               child: !widget.isSubmitted
                   ? TextButton(
                       onPressed: () async {
+                        await _profileController.fetchUserInfo();
+
                         await _controller.addAttendanceStudentRecord(
                           attendanceId: widget.attendanceId,
-                          code: "Wala pa",
+                          code: widget.subject.split(' ')[0],
                           datenow: widget.date,
-                          room: "Wala pa",
-                          schedule: "Wala pa",
+                          room: '',
+                          schedule: widget.date,
                           studentRecord: studentRecord,
                           subject: widget.subject,
-                          teacher: "rolan wala pana",
+                          teacher: _profileController.userInfo['fullname'],
                           section: widget.section,
                         );
                         await _controller.isSubmitted(
                             attendanceId: widget.attendanceId);
+                        populateWordTemplate();
 
                         Get.back();
                       },
@@ -144,52 +151,57 @@ class _ListOfStudentsState extends State<ListOfStudents> {
     );
   }
 
-  Widget _buildScrollableTable(List<Map<String, dynamic>> data) {
+  Widget _buildScrollableTable(List<Map<String, dynamic>> data, Size size) {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: DataTable(
-          columns: [
-            DataColumn(label: Text('No.')),
-            DataColumn(label: Text('Name')),
-            DataColumn(label: Text('Absent ?')),
-          ],
-          rows: data.asMap().entries.map((entry) {
-            int index = entry.key;
-            Map<String, dynamic> student = entry.value;
+        child: SizedBox(
+          width: size.width,
+          height: size.height,
+          child: DataTable(
+            columns: [
+              DataColumn(label: Text('No.')),
+              DataColumn(label: Text('Name')),
+              DataColumn(label: Text('Absent ?')),
+            ],
+            rows: data.asMap().entries.map((entry) {
+              int index = entry.key;
+              Map<String, dynamic> student = entry.value;
 
-            if (studentRecord.length < data.length) {
-              studentRecord.add({
-                'name': student['full_name'] ?? student['name'],
-                'present': isPresent[index] == false ? 'X' : '✓',
-              });
-            }
+              if (studentRecord.length < data.length) {
+                studentRecord.add({
+                  'name': student['full_name'] ?? student['name'],
+                  'present': isPresent[index] == false ? 'X' : '✓',
+                });
+              }
 
-            return DataRow(cells: [
-              DataCell(Text('${index + 1}')),
-              DataCell(Text(student['full_name'] ?? student['name'] ?? 'N/A')),
-              DataCell(widget.isSubmitted
-                  ? Text(
-                      student['present'] ?? 'N/A',
-                      style: TextStyle(
-                          color: student['present'] == '✓'
-                              ? Colors.green
-                              : Colors.red),
-                    )
-                  : Checkbox(
-                      value: isPresent[index],
-                      onChanged: (value) {
-                        setState(() {
-                          isPresent[index] = value ?? false;
-                        });
+              return DataRow(cells: [
+                DataCell(Text('${index + 1}')),
+                DataCell(
+                    Text(student['full_name'] ?? student['name'] ?? 'N/A')),
+                DataCell(widget.isSubmitted
+                    ? Text(
+                        student['present'] ?? 'N/A',
+                        style: TextStyle(
+                            color: student['present'] == '✓'
+                                ? Colors.green
+                                : Colors.red),
+                      )
+                    : Checkbox(
+                        value: isPresent[index],
+                        onChanged: (value) {
+                          setState(() {
+                            isPresent[index] = value ?? false;
+                          });
 
-                        studentRecord[index]['present'] =
-                            isPresent[index] == false ? 'X' : '✓';
-                      },
-                    )),
-            ]);
-          }).toList(),
+                          studentRecord[index]['present'] =
+                              isPresent[index] == false ? 'X' : '✓';
+                        },
+                      )),
+              ]);
+            }).toList(),
+          ),
         ),
       ),
     );
@@ -238,10 +250,15 @@ class _ListOfStudentsState extends State<ListOfStudents> {
     log('Exporting to PDF...');
 
     try {
+      await _profileController.fetchUserInfo();
       final response = await documentService.generateDocument(
-          record: recorded,
-          subject: generate['subject'],
-          datenow: generate['datenow']);
+        record: recorded,
+        subject: generate['subject'],
+        datenow: generate['datenow'],
+        code: widget.subject.split(' ')[0],
+        teacher: _profileController.userInfo['fullname'],
+      );
+
       if (response.statusCode == 200) {
         final String downloadLink = response.body['data'];
         await _controller.storedUrl(

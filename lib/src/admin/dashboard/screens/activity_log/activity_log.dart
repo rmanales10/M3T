@@ -1,33 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'activity_log_controller.dart';
 
-class ActivityLogPage extends StatefulWidget {
-  @override
-  _ActivityLogPageState createState() => _ActivityLogPageState();
-}
-
-class _ActivityLogPageState extends State<ActivityLogPage> {
-  final List<Map<String, dynamic>> activityData = [
-    {
-      "email": "john.doe@domain.com",
-      "ip": "192.168.0.1",
-      "date": "June 1, 2023",
-      "time": "10:00 am",
-      "action": "Online",
-      "description": "Logged in from a new device."
-    },
-    {
-      "email": "jane.smith@domain.com",
-      "ip": "203.0.113.45",
-      "date": "June 1, 2023",
-      "time": "11:30 am",
-      "action": "Offline",
-      "description": "Logged out after session expiration."
-    },
-    // Add more entries as needed...
-  ];
-
-  String searchQuery = "";
-  String filterType = "All";
+class ActivityLogPage extends StatelessWidget {
+  final ActivityLogController controller = Get.put(ActivityLogController());
 
   @override
   Widget build(BuildContext context) {
@@ -35,18 +11,6 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
 
     // Adjust padding and column widths for desktop screens
     final isDesktop = screenWidth > 1024;
-
-    final filteredData = activityData
-        .where((row) =>
-            (filterType == "All" || row['action'] == filterType) &&
-            row['email'].toLowerCase().contains(searchQuery.toLowerCase()))
-        .toList();
-
-    final totalUsers = activityData.length;
-    final onlineUsers =
-        activityData.where((row) => row['action'] == "Online").length;
-    final offlineUsers =
-        activityData.where((row) => row['action'] == "Offline").length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -74,9 +38,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
                 Expanded(
                   child: TextField(
                     onChanged: (value) {
-                      setState(() {
-                        searchQuery = value;
-                      });
+                      controller.setSearchQuery(value);
                     },
                     decoration: InputDecoration(
                       hintText: "Search by email...",
@@ -93,93 +55,95 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
             const SizedBox(height: 20),
 
             // Summary Row
-            Flex(
-              direction: isDesktop ? Axis.horizontal : Axis.vertical,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildSummaryCard(
-                  title: "Total Users",
-                  count: totalUsers,
-                  color: Colors.blue.withOpacity(0.2),
-                  onTap: () {
-                    setState(() {
-                      filterType = "All";
-                    });
-                  },
-                ),
-                _buildSummaryCard(
-                  title: "Online Users",
-                  count: onlineUsers,
-                  color: Colors.green.withOpacity(0.8),
-                  onTap: () {
-                    setState(() {
-                      filterType = "Online";
-                    });
-                  },
-                ),
-                _buildSummaryCard(
-                  title: "Offline Users",
-                  count: offlineUsers,
-                  color: Colors.red.withOpacity(0.7),
-                  onTap: () {
-                    setState(() {
-                      filterType = "Offline";
-                    });
-                  },
-                ),
-              ],
-            ),
+            Obx(() {
+              controller.fetchActivityLogs();
+              return Flex(
+                direction: isDesktop ? Axis.horizontal : Axis.vertical,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildSummaryCard(
+                    title: "Total Users",
+                    count: controller.totalUsers,
+                    color: Colors.blue.withOpacity(0.2),
+                    onTap: () {
+                      controller.setFilterType("All");
+                    },
+                  ),
+                  _buildSummaryCard(
+                    title: "Online Users",
+                    count: controller.onlineUsers,
+                    color: Colors.green.withOpacity(0.8),
+                    onTap: () {
+                      controller.setFilterType("Online");
+                    },
+                  ),
+                  _buildSummaryCard(
+                    title: "Offline Users",
+                    count: controller.offlineUsers,
+                    color: Colors.red.withOpacity(0.7),
+                    onTap: () {
+                      controller.setFilterType("Offline");
+                    },
+                  ),
+                ],
+              );
+            }),
             const SizedBox(height: 20),
 
             // Data Table
-            Expanded(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: isDesktop ? screenWidth * 0.8 : double.infinity,
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    columnSpacing: isDesktop ? 80 : screenWidth * 0.05,
-                    columns: [
-                      _buildDataColumn("Email", isDesktop),
-                      _buildDataColumn("IP Address", isDesktop),
-                      _buildDataColumn("Date", isDesktop),
-                      _buildDataColumn("Time", isDesktop),
-                      _buildDataColumn("Action", isDesktop),
-                      _buildDataColumn("Description", isDesktop),
-                    ],
-                    rows: filteredData.map((row) {
-                      return DataRow(cells: [
-                        DataCell(Text(row['email'], style: _cellTextStyle())),
-                        DataCell(Text(row['ip'], style: _cellTextStyle())),
-                        DataCell(Text(row['date'], style: _cellTextStyle())),
-                        DataCell(Text(row['time'], style: _cellTextStyle())),
-                        DataCell(
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 4.0),
-                            decoration: BoxDecoration(
-                              color: row['action'] == "Online"
-                                  ? Colors.green.withOpacity(0.8)
-                                  : Colors.red.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            child: Text(
-                              row['action'],
-                              style: const TextStyle(color: Colors.white),
+            Obx(() {
+              controller.fetchActivityLogs();
+              final filteredData = controller.filteredData;
+
+              return Expanded(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: isDesktop ? screenWidth * 0.8 : double.infinity,
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columnSpacing: isDesktop ? 80 : screenWidth * 0.05,
+                      columns: [
+                        _buildDataColumn("Email", isDesktop),
+                        _buildDataColumn("IP Address", isDesktop),
+                        _buildDataColumn("Date", isDesktop),
+                        _buildDataColumn("Time", isDesktop),
+                        _buildDataColumn("Action", isDesktop),
+                        _buildDataColumn("Description", isDesktop),
+                      ],
+                      rows: filteredData.map((row) {
+                        return DataRow(cells: [
+                          DataCell(Text(row['email'], style: _cellTextStyle())),
+                          DataCell(Text(row['ip'], style: _cellTextStyle())),
+                          DataCell(Text(row['date'], style: _cellTextStyle())),
+                          DataCell(Text(row['time'], style: _cellTextStyle())),
+                          DataCell(
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 4.0),
+                              decoration: BoxDecoration(
+                                color: row['action'] == "Online"
+                                    ? Colors.green.withOpacity(0.8)
+                                    : Colors.red.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(4.0),
+                              ),
+                              child: Text(
+                                row['action'],
+                                style: const TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
-                        ),
-                        DataCell(
-                          Text(row['description'], style: _cellTextStyle()),
-                        ),
-                      ]);
-                    }).toList(),
+                          DataCell(
+                            Text(row['description'], style: _cellTextStyle()),
+                          ),
+                        ]);
+                      }).toList(),
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            }),
           ],
         ),
       ),

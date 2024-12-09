@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:app_attend/src/user/api_services/auth_service.dart';
-import 'package:app_attend/src/user/api_services/firestore_service.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/profile/profile_controller.dart';
 import 'package:app_attend/src/widgets/color_constant.dart';
 import 'package:flutter/foundation.dart';
@@ -23,25 +21,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final AuthService _auth = Get.put(AuthService());
-  final FirestoreService _firestoreService = Get.put(FirestoreService());
   final _controller = Get.put(ProfileController());
-  String? base64Image;
-  Uint8List? _imageBytes;
+  late final String base64Image;
+  final isEdit = false.obs;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _controller.fetchUserInfo();
+    initProfile();
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
-    // Fetch user data
-    _firestoreService.fetchUserData(_auth.currentUser!.uid);
-
     return Scaffold(
       body: SingleChildScrollView(
         child: Stack(
@@ -76,6 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             alignment: Alignment.topCenter,
             children: [
               Obx(() {
+                _controller.fetchUserInfo();
                 final imageString = _controller.userInfo['base64image'];
                 Uint8List? profileImageBytes;
 
@@ -87,19 +81,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 }
 
-                return CircleAvatar(
-                  backgroundColor: Colors.black,
-                  radius: 45,
-                  backgroundImage: profileImageBytes != null
-                      ? MemoryImage(profileImageBytes)
-                      : null,
+                return ClipOval(
                   child: profileImageBytes == null
-                      ? const Icon(
-                          Icons.person,
-                          size: 45,
-                          color: Colors.white,
-                        ) // Placeholder icon when no image is available
-                      : null,
+                      ? Icon(
+                          Icons.person_4_outlined,
+                          size: 100,
+                        )
+                      : Image.memory(
+                          profileImageBytes,
+                          height: 100,
+                          width: 100,
+                          gaplessPlayback: true,
+                          fit: BoxFit.cover,
+                        ),
                 );
               }),
               // Positioned edit icon on top of CircleAvatar
@@ -128,14 +122,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 10),
           // Full Name of the User
-          Obx(() => Text(
-                '${_firestoreService.userData['fullname'] ?? ''}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              )),
+          Obx(() {
+            _controller.fetchUserInfo();
+            return Text(
+              '${_controller.userInfo['fullname'] ?? ''}',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            );
+          }),
           // Instructor Title
           const Text(
             'Instructor',
@@ -160,29 +157,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'Edit',
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red),
-                  ))
+                  onPressed: () async {
+                    isEdit.value = !isEdit.value;
+                    await _controller.updateUserInfo(
+                        fullname: fullnameController.text,
+                        phoneNumber: phoneController.text);
+                  },
+                  child: Obx(() => Text(
+                        isEdit.value ? 'Done' : 'Edit',
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red),
+                      )))
             ],
           ),
           const SizedBox(height: 20),
-          Obx(() => Column(
-                children: [
-                  _buildLabeledField('Name & Surname', Icons.person,
-                      '${_firestoreService.userData['fullname'] ?? ''}'),
-                  const SizedBox(height: 15),
-                  _buildLabeledField('Email Address', Icons.email,
-                      '${_firestoreService.userData['email'] ?? ''}'),
-                  const SizedBox(height: 15),
-                  _buildLabeledField('Phone Number', Icons.phone,
-                      '${_firestoreService.userData['phone'] ?? ''}'),
-                ],
-              )),
+          Obx(
+            () => Column(
+              children: [
+                _buildLabeledField('Name & Surname', Icons.person,
+                    fullnameController, isEdit.value),
+                const SizedBox(height: 15),
+                _buildLabeledField(
+                    'Email Address', Icons.email, emailController, false),
+                const SizedBox(height: 15),
+                _buildLabeledField(
+                    'Phone Number', Icons.phone, phoneController, isEdit.value),
+              ],
+            ),
+          )
         ],
       ),
     );
@@ -228,7 +232,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLabeledField(String label, IconData icon, String value) {
+  Widget _buildLabeledField(
+    String label,
+    IconData icon,
+    TextEditingController controller,
+    bool isEdit,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -249,10 +258,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icon(icon, color: Colors.grey[600]),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  value,
+                child: TextField(
+                  enabled: isEdit,
+                  controller: controller,
                   style: const TextStyle(fontSize: 16),
-                  overflow: TextOverflow.ellipsis,
+                  decoration: InputDecoration.collapsed(
+                    hintText: '',
+                    border: InputBorder.none, // Removes the default underline
+                  ),
+                  keyboardType: TextInputType.text,
+                  maxLines: 1, // Use multi-line if you want
                 ),
               ),
             ],
@@ -263,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _resetPassword() {
-    // Logic to reset password
+    _controller.resetPass(email: emailController.text);
     Get.snackbar(
       'Reset Password',
       'Password reset link has been sent to your email.',
@@ -288,7 +303,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final Uint8List webImageBytes = await pickedFile.readAsBytes();
 
           setState(() {
-            _imageBytes = webImageBytes;
             base64Image = base64Encode(webImageBytes);
           });
           await _controller.storeImage(image: base64Image);
@@ -304,7 +318,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 await nativeImageFile.readAsBytes();
 
             setState(() {
-              _imageBytes = nativeImageBytes;
               base64Image = base64Encode(nativeImageBytes);
             });
             await _controller.storeImage(image: base64Image);
@@ -320,5 +333,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       log("Error picking image: $e");
     }
+  }
+
+  Future<void> initProfile() async {
+    await _controller.fetchUserInfo();
+    setState(() {
+      fullnameController.text = _controller.userInfo['fullname'];
+      emailController.text = _controller.userInfo['email'];
+      phoneController.text = _controller.userInfo['phone'];
+    });
   }
 }

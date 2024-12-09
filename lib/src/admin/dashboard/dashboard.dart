@@ -37,7 +37,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       //   return SectionPage();
       case 'Subjects':
         return SubjectPage();
-      case 'Activity Log':
+      case 'Activity Logs':
         return ActivityLogPage();
       default:
         return Center(child: Text('Main Content Area'));
@@ -98,28 +98,6 @@ class Sidebar extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 30),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.blue,
-                      child: Text('CL', style: TextStyle(color: Colors.white)),
-                    ),
-                    SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Rolan Manales',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
-                        Text('Admin', style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
 
               // Search Box
 
@@ -163,9 +141,9 @@ class Sidebar extends StatelessWidget {
 
                   _buildMenuItem(
                     Icons.event_note_outlined,
-                    'Activity Log',
-                    isSelected: currentPage == 'Activity Log',
-                    onTap: () => onPageSelected('Activity Log'),
+                    'Activity Logs',
+                    isSelected: currentPage == 'Activity Logs',
+                    onTap: () => onPageSelected('Activity Logs'),
                   ),
                 ],
               ),

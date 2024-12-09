@@ -115,14 +115,15 @@ class TeacherPage extends StatelessWidget {
                                       ElevatedButton(
                                         onPressed: () {
                                           _firestore.deleteUser(user['id']);
-                                          Get.back();
+                                          Get.back(closeOverlays: true);
                                           Get.snackbar('Success',
                                               'User deleted successfully');
                                         },
                                         child: Text('Yes'),
                                       ),
                                       ElevatedButton(
-                                        onPressed: () => Get.back(),
+                                        onPressed: () =>
+                                            Get.back(closeOverlays: true),
                                         child: Text('No'),
                                       ),
                                     ],

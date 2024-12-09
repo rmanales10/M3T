@@ -47,6 +47,9 @@ dependencies:
   table_calendar: ^3.0.9
   url_launcher: ^6.3.1
   image_picker: ^1.1.2
+  docx_template: ^0.4.0
+  launcher_name: ^1.0.2
+  http: ^1.2.2
 
 
 dev_dependencies:
@@ -68,6 +71,14 @@ flutter_launcher_icons:
   min_sdk_android: 23 # android min sdk min:16, default 21
   adaptive_icon_background: "#3B5998"
   adaptive_icon_foreground: "assets/icon/icon.png"
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#3B5998"
+    theme_color: "assets/icon/icon.png"
+launcher_name:
+  default: "Tap Attend"
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

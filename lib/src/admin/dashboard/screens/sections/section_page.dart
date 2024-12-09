@@ -23,7 +23,7 @@ class SectionPage extends StatelessWidget {
             idnumber: idNumber.text,
             section: section.text);
         _firestore.getAllStudent();
-        Get.back();
+        Get.back(closeOverlays: true);
         // Get.snackbar('Success', 'Student added successfully');
         fullName.clear();
         idNumber.clear();
@@ -110,7 +110,7 @@ class SectionPage extends StatelessWidget {
                                     child: Text('Submit')),
                                 ElevatedButton(
                                     onPressed: () {
-                                      Get.back();
+                                      Get.back(closeOverlays: true);
                                     },
                                     child: Text('Cancel'))
                               ],
@@ -193,7 +193,7 @@ class SectionPage extends StatelessWidget {
                                     ElevatedButton(
                                       onPressed: () {
                                         _firestore.deleteStudent(user['id']);
-                                        Get.back();
+                                        Get.back(closeOverlays: true);
                                         Get.snackbar('Success',
                                             'User deleted successfully');
                                         _firestore.getAllStudent();
@@ -201,7 +201,8 @@ class SectionPage extends StatelessWidget {
                                       child: Text('Yes'),
                                     ),
                                     ElevatedButton(
-                                      onPressed: () => Get.back(),
+                                      onPressed: () =>
+                                          Get.back(closeOverlays: true),
                                       child: Text('No'),
                                     ),
                                   ],

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:app_attend/src/user/api_services/auth_service.dart';
-import 'package:app_attend/src/user/api_services/firestore_service.dart';
+
 import 'package:app_attend/src/user/dashboard/list_screen/home/home_controller.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/profile/profile_controller.dart';
 import 'package:app_attend/src/widgets/color_constant.dart';
@@ -27,9 +27,9 @@ class HomeFinal extends StatefulWidget {
 class _HomeFinalState extends State<HomeFinal> {
   late TimeController timeController;
   late AuthService authService;
-  late FirestoreService firestoreService;
+
   late HomeController _controller;
-  late ProfileController _profileController;
+  late ProfileController _profileController = Get.put(ProfileController());
   final selectedSubject = RxnString();
   final subjectNames = RxList<String>();
   Rx<DateTime> date = DateTime.now().obs;
@@ -44,12 +44,8 @@ class _HomeFinalState extends State<HomeFinal> {
     super.initState();
     timeController = Get.put(TimeController());
     authService = Get.put(AuthService());
-    firestoreService = Get.put(FirestoreService());
+
     _controller = Get.put(HomeController());
-    _profileController = Get.put(ProfileController());
-    setState(() {
-      _imageBytes = base64Decode(_profileController.userInfo['base64image']);
-    });
 
     _controller.fetchAllRecord();
     for (var attend in _controller.allRecord) {
@@ -57,16 +53,6 @@ class _HomeFinalState extends State<HomeFinal> {
       subjectNames.addNonNull(attend['subject'].toString());
     }
     _controller.fetchHolidays();
-  }
-
-  String _formatSubject(Map<String, dynamic> record) {
-    final subject = record['subject'] as String;
-    final section = record['section'] as String;
-    final recordTime = record['time'] as String;
-    final timestamp = record['date'];
-    DateTime recordDate =
-        timestamp is Timestamp ? timestamp.toDate() : (timestamp as DateTime);
-    return '$subject $section ${DateFormat('MM/dd/yyyy').format(recordDate)} $recordTime';
   }
 
   void _updateDateTimeFromSelection(String selected) {
@@ -120,6 +106,8 @@ class _HomeFinalState extends State<HomeFinal> {
 
   Widget _buildUserProfile() {
     return Obx(() {
+      _profileController.fetchUserInfo();
+      _imageBytes = base64Decode(_profileController.userInfo['base64image']);
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -127,9 +115,22 @@ class _HomeFinalState extends State<HomeFinal> {
           color: blue,
         ),
         child: UserProfileWidget(
-          name: firestoreService.userData['fullname'] ?? 'No Name',
+          name: _profileController.userInfo['fullname'] as String? ??
+              'Loading...',
           email: 'Instructor',
-          profileImageUrl: MemoryImage(_imageBytes),
+          // ignore: unnecessary_null_comparison
+          profileImageUrl: _imageBytes == null
+              ? Icon(
+                  Icons.person,
+                  size: 100,
+                )
+              : Image.memory(
+                  _imageBytes,
+                  height: 50,
+                  width: 50,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                ),
         ),
       );
     });

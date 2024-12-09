@@ -27,4 +27,16 @@ class ProfileController extends GetxController {
       log('Error $e');
     }
   }
+
+  Future<void> updateUserInfo(
+      {required String fullname, required String phoneNumber}) async {
+    await _firestore.collection('users').doc(currentUser!.uid).set({
+      'fullname': fullname,
+      'phone': phoneNumber,
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> resetPass({required String email}) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
 }

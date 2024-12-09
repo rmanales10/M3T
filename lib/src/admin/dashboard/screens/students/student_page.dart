@@ -204,7 +204,7 @@ class _StudentPageState extends State<StudentPage> {
                           onPressed: () async {
                             await _controller.deleteStudent(
                                 studentId: user['id']);
-                            Get.back();
+                            Get.back(closeOverlays: true);
                             Get.snackbar(
                                 'Success', 'User deleted successfully');
                             _controller.getAllStudents();
@@ -212,7 +212,7 @@ class _StudentPageState extends State<StudentPage> {
                           child: Text('Yes'),
                         ),
                         ElevatedButton(
-                          onPressed: () => Get.back(),
+                          onPressed: () => Get.back(closeOverlays: true),
                           child: Text('No'),
                         ),
                       ],
@@ -390,6 +390,7 @@ class _StudentPageState extends State<StudentPage> {
                             sectionYearBlock: getFormattedInfo());
                         isAddStudent.value = !isAddStudent.value;
                         dataS.clear();
+
                         Get.snackbar(
                             'Success', 'Student record saved successfully');
                       },

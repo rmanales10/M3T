@@ -119,7 +119,7 @@ class SubjectPage extends StatelessWidget {
                                           courseCode: courseCode.text,
                                           subjectName: subjectName.text,
                                           department: selectedDepartment.value);
-                                      Get.back();
+                                      Get.back(closeOverlays: true);
                                       Get.snackbar('Success',
                                           'Subject Added Successfully!');
                                       courseCode.clear();
@@ -128,7 +128,7 @@ class SubjectPage extends StatelessWidget {
                                     child: Text('Submit')),
                                 ElevatedButton(
                                     onPressed: () {
-                                      Get.back();
+                                      Get.back(closeOverlays: true);
                                     },
                                     child: Text('Cancel'))
                               ],
@@ -199,14 +199,15 @@ class SubjectPage extends StatelessWidget {
                                       onPressed: () async {
                                         await _controller.deleteSubject(
                                             id: subj['id']);
-                                        Get.back();
+                                        Get.back(closeOverlays: true);
                                         Get.snackbar('Success',
                                             'User deleted successfully');
                                       },
                                       child: Text('Yes'),
                                     ),
                                     ElevatedButton(
-                                      onPressed: () => Get.back(),
+                                      onPressed: () =>
+                                          Get.back(closeOverlays: true),
                                       child: Text('No'),
                                     ),
                                   ],

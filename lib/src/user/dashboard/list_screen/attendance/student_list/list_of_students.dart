@@ -163,7 +163,7 @@ class _ListOfStudentsState extends State<ListOfStudents> {
             columns: [
               DataColumn(label: Text('No.')),
               DataColumn(label: Text('Name')),
-              DataColumn(label: Text('Absent ?')),
+              DataColumn(label: Text('Present ✓')),
             ],
             rows: data.asMap().entries.map((entry) {
               int index = entry.key;

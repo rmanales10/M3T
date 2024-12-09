@@ -1,4 +1,4 @@
-import 'package:app_attend/src/user/dashboard/list_screen/attendance/create/create_controller.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/attendance/create_attendance/create_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';

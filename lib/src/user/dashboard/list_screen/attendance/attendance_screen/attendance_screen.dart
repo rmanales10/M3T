@@ -1,5 +1,5 @@
 import 'package:app_attend/src/user/dashboard/list_screen/attendance/attendance_screen/attendance_controller.dart';
-import 'package:app_attend/src/user/dashboard/list_screen/attendance/create/create_attendance.dart';
+import 'package:app_attend/src/user/dashboard/list_screen/attendance/create_attendance/create_attendance.dart';
 import 'package:app_attend/src/user/dashboard/list_screen/attendance/student_list/list_of_students.dart';
 import 'package:app_attend/src/widgets/color_constant.dart';
 import 'package:app_attend/src/widgets/reusable_function.dart';

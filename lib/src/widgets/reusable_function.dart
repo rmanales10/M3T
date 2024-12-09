@@ -33,12 +33,14 @@ TextFormField myTextField(
     IconData icon,
     TextEditingController controller,
     FormFieldValidator<String> validator,
-    TextInputType inputType) {
+    TextInputType inputType,
+    String prefix) {
   return TextFormField(
     controller: controller,
     validator: validator,
     keyboardType: inputType,
     decoration: InputDecoration(
+      prefix: Text(prefix ?? ''),
       hintText: label,
       prefixIcon: Icon(icon),
       border: OutlineInputBorder(
@@ -206,13 +208,8 @@ String? phoneNumberValidator(String? value) {
   }
 
   // Check if the length is exactly 11 digits
-  if (value.length != 11) {
+  if (value.length != 9) {
     return 'Phone number must be exactly 11 digits';
-  }
-
-  // Optional: Check if it starts with specific digits (e.g., "09" for a specific format)
-  if (!value.startsWith('09')) {
-    return 'Phone number should start with "09"';
   }
 
   return null; // Validation passed

@@ -58,8 +58,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       children: [
                         formLabel('Email'),
                         SizedBox(height: 8.0),
-                        myTextField('Enter your email address', Icons.email,
-                            email, emailValidator, TextInputType.emailAddress),
+                        myTextField(
+                            'Enter your email address',
+                            Icons.email,
+                            email,
+                            emailValidator,
+                            TextInputType.emailAddress,
+                            ''),
                         SizedBox(height: 10.0),
                       ],
                     ),

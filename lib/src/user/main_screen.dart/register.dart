@@ -23,20 +23,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final AuthService _authService = Get.put(AuthService());
   final isClick = false.obs;
 
-  @override
-  void initState() {
-    super.initState();
-    phoneController.text = "09";
-  }
-
   void _registerUser() {
     if (_formKey.currentState?.validate() == true && isTermsAccepted.value) {
-      _authService.registerUser(
-        fullnameController.text,
-        emailController.text,
-        passwordController.text,
-        phoneController.text,
-      );
+      _authService.registerUser(fullnameController.text, emailController.text,
+          passwordController.text, '09${phoneController.text}');
       isClick.value = true;
     } else {
       Get.snackbar(
@@ -75,6 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   'A dedicated Data Protection Officer is appointed to ensure compliance with data privacy regulations '
                   'and to address any concerns or inquiries related to personal data.\n\n'
                   'If you have any questions or concerns, please contact us at rmanales10@gmail.com.',
+                  textAlign: TextAlign.justify,
                 ),
               ],
             ),
@@ -123,12 +114,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildTextField('Full Name', Icons.person,
-                              fullnameController, fullNameValidator),
-                          _buildTextField('Email', Icons.email, emailController,
-                              emailValidator),
-                          _buildTextField('Phone Number', Icons.phone,
-                              phoneController, phoneNumberValidator),
+                          _buildTextField(
+                              'Full Name',
+                              'Enter your full name',
+                              Icons.person,
+                              fullnameController,
+                              fullNameValidator,
+                              ''),
+                          _buildTextField('Email', 'Enter your email',
+                              Icons.email, emailController, emailValidator, ''),
+                          _buildTextField(
+                              'Phone Number',
+                              'xxxxxxxxx',
+                              Icons.phone,
+                              phoneController,
+                              phoneNumberValidator,
+                              '09'),
                           _buildPasswordField(),
                           _buildTermsCheckbox(),
                         ],
@@ -151,19 +152,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildTextField(String label, IconData icon,
-      TextEditingController controller, String? Function(String?) validator) {
+  Widget _buildTextField(
+      String textLabel,
+      String label,
+      IconData icon,
+      TextEditingController controller,
+      String? Function(String?) validator,
+      String prefix) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        formLabel(label),
+        formLabel(textLabel),
         myTextField(
-          'Enter $label',
-          icon,
-          controller,
-          validator,
-          TextInputType.text,
-        ),
+            label, icon, controller, validator, TextInputType.text, prefix),
         const SizedBox(height: 8.0),
       ],
     );

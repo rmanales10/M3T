@@ -141,13 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         formLabel(label),
         const SizedBox(height: 8.0),
-        myTextField(
-          hint,
-          icon,
-          controller,
-          validator,
-          keyboardType,
-        ),
+        myTextField(hint, icon, controller, validator, keyboardType, ''),
       ],
     );
   }

@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class ReportScreen extends StatelessWidget {
   final _controller = Get.put(ReportController());
+  final TextEditingController _searchController = TextEditingController();
 
   ReportScreen({super.key});
 
@@ -25,7 +26,7 @@ class ReportScreen extends StatelessWidget {
             Expanded(
               child: Obx(() {
                 _controller.getReports();
-                final reports = _controller.reports;
+                final reports = _controller.filteredReports;
 
                 if (reports.isEmpty) {
                   return const Center(
@@ -46,6 +47,7 @@ class ReportScreen extends StatelessWidget {
                       date: '${report['date']}',
                       fileType: '${report['type']}',
                       url: '${report['url']}',
+                      id: report['attendance_id'],
                     );
                   },
                 );
@@ -62,6 +64,7 @@ class ReportScreen extends StatelessWidget {
       width: 200,
       height: 40,
       child: TextField(
+        controller: _searchController,
         decoration: InputDecoration(
           labelText: 'Search',
           suffixIcon: const Icon(Icons.search),
@@ -69,6 +72,9 @@ class ReportScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
+        onChanged: (query) {
+          _controller.updateSearchQuery(query); // Trigger search filtering
+        },
       ),
     );
   }
@@ -78,6 +84,7 @@ class ReportScreen extends StatelessWidget {
     required String date,
     required String fileType,
     required String url,
+    required String id,
   }) {
     return Container(
       width: double.infinity,
@@ -126,6 +133,36 @@ class ReportScreen extends StatelessWidget {
             },
             icon: const Icon(Icons.download),
             color: blue,
+          ),
+          IconButton(
+            onPressed: () {
+              Get.dialog(AlertDialog(
+                title: Text('Confirmation'),
+                content: Text('Are you sure you want to delete?'),
+                actions: [
+                  TextButton(
+                      onPressed: () async {
+                        await _controller.deleteReports(id);
+                        Get.back(closeOverlays: true);
+                        Get.snackbar('Success', 'Report deleted successfully!');
+                      },
+                      child: Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.red),
+                      )),
+                  TextButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.blue),
+                      )),
+                ],
+              ));
+            },
+            icon: const Icon(Icons.delete),
+            color: Colors.red,
           ),
         ],
       ),

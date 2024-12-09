@@ -11,7 +11,6 @@ import 'package:app_attend/src/widgets/time_clock.dart';
 import 'package:app_attend/src/widgets/time_controller.dart';
 import 'package:app_attend/src/widgets/upcoming_reminder.dart';
 import 'package:app_attend/src/widgets/user_profile.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,7 +28,8 @@ class _HomeFinalState extends State<HomeFinal> {
   late AuthService authService;
 
   late HomeController _controller;
-  late ProfileController _profileController = Get.put(ProfileController());
+  late final ProfileController _profileController =
+      Get.put(ProfileController());
   final selectedSubject = RxnString();
   final subjectNames = RxList<String>();
   Rx<DateTime> date = DateTime.now().obs;
@@ -37,7 +37,6 @@ class _HomeFinalState extends State<HomeFinal> {
   RxInt totalPresent = 0.obs;
   RxInt totalAbsent = 0.obs;
   RxInt totalStudent = 0.obs;
-  late Uint8List _imageBytes;
 
   @override
   void initState() {
@@ -107,7 +106,7 @@ class _HomeFinalState extends State<HomeFinal> {
   Widget _buildUserProfile() {
     return Obx(() {
       _profileController.fetchUserInfo();
-      _imageBytes = base64Decode(_profileController.userInfo['base64image']);
+
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -118,14 +117,13 @@ class _HomeFinalState extends State<HomeFinal> {
           name: _profileController.userInfo['fullname'] as String? ??
               'Loading...',
           email: 'Instructor',
-          // ignore: unnecessary_null_comparison
-          profileImageUrl: _imageBytes == null
+          profileImageUrl: _profileController.userInfo['base64image'] == null
               ? Icon(
                   Icons.person,
-                  size: 100,
+                  size: 50,
                 )
               : Image.memory(
-                  _imageBytes,
+                  base64Decode(_profileController.userInfo['base64image']),
                   height: 50,
                   width: 50,
                   fit: BoxFit.cover,

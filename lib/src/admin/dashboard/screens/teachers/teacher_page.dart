@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:app_attend/src/admin/firebase/firestore.dart';
 
+// ignore: must_be_immutable
 class TeacherPage extends StatelessWidget {
   TeacherPage({super.key});
   final Firestore _firestore = Get.put(Firestore());
